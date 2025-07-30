@@ -3,7 +3,7 @@ import { tokenManager } from "./auth-api"
 
 // Create an axios instance with default config
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.atlasprimebr.com",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

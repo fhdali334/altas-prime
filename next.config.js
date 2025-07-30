@@ -11,7 +11,7 @@ const nextConfig = {
     unoptimized: true,
   },
   env: {
-    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || "https://angulus-be.onrender.com",
+    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   },
 }
 

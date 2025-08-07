@@ -3,7 +3,7 @@ import { tokenManager } from "./auth-api"
 
 // Create an axios instance with default config
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.atlasprimebr.com",
   headers: {
     "Content-Type": "application/json",
   },
@@ -82,7 +82,15 @@ export const agentAPI = {
     instructions: string
     tools?: string[]
     icon_name?: string
-  }) => api.post("/agents", data),
+  }) => {
+    // Ensure tools is always an array
+    const payload = {
+      ...data,
+      tools: data.tools || []
+    }
+    console.log("API call payload:", payload)
+    return api.post("/agents", payload)
+  },
   update: (
     id: string,
     data: {
@@ -91,7 +99,14 @@ export const agentAPI = {
       tools?: string[]
       icon_name?: string
     },
-  ) => api.put(`/agents/${id}`, data),
+  ) => {
+    // Ensure tools is always an array
+    const payload = {
+      ...data,
+      tools: data.tools || []
+    }
+    return api.put(`/agents/${id}`, payload)
+  },
   delete: (id: string) => api.delete(`/agents/${id}`),
 }
 

@@ -10,31 +10,42 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import Sidebar from "@/components/layout/Sidebar"
+import { useToast } from "@/hooks/use-toast"
 
 interface Tool {
   _id: string
   name: string
+  description?: string
 }
 
 export default function CreateAgentPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingTools, setIsLoadingTools] = useState(true)
   const [availableTools, setAvailableTools] = useState<Tool[]>([])
+  const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     instructions: "",
     tools: [] as string[],
-    icon_name: null as string | null,
+    icon_name: "",
   })
 
   useEffect(() => {
     const fetchTools = async () => {
       try {
+        setIsLoadingTools(true)
         const response = await toolAPI.getAll()
-        setAvailableTools(response.data)
+        console.log("Available tools:", response.data)
+        setAvailableTools(response.data || [])
       } catch (error) {
         console.error("Error fetching tools:", error)
+        setError("Failed to load available tools")
+      } finally {
+        setIsLoadingTools(false)
       }
     }
     fetchTools()
@@ -42,19 +53,48 @@ export default function CreateAgentPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || !formData.instructions) return
+    if (!formData.name.trim() || !formData.instructions.trim()) {
+      setError("Name and instructions are required")
+      return
+    }
 
     try {
       setIsSubmitting(true)
-      await agentAPI.create({
-        name: formData.name,
-        instructions: formData.instructions,
+      setError("")
+
+      const payload = {
+        name: formData.name.trim(),
+        instructions: formData.instructions.trim(),
         tools: formData.tools,
-        icon_name: formData.icon_name,
+        icon_name: formData.icon_name || undefined,
+      }
+
+      console.log("Creating agent with payload:", payload)
+
+      const response = await agentAPI.create(payload)
+      
+      console.log("Agent created successfully:", response.data)
+      
+      toast({
+        title: "Success",
+        description: "Agent created successfully!",
       })
-      router.push("/dashboard")
-    } catch (error) {
+
+      // Redirect to agents page or the specific agent page
+      router.push("/agents")
+    } catch (error: any) {
       console.error("Error creating agent:", error)
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          "Failed to create agent"
+      setError(errorMessage)
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -69,70 +109,140 @@ export default function CreateAgentPage() {
     })
   }
 
+  const handleToolToggle = (toolId: string, checked: boolean) => {
+    if (checked) {
+      setFormData({
+        ...formData,
+        tools: [...formData.tools, toolId]
+      })
+    } else {
+      setFormData({
+        ...formData,
+        tools: formData.tools.filter(id => id !== toolId)
+      })
+    }
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 ml-64 overflow-y-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Create New Agent</h1>
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Create New Agent</h1>
 
-        <AgentTemplates onSelect={handleTemplateSelect} />
+          <AgentTemplates onSelect={handleTemplateSelect} />
 
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-          <div>
-            <Label htmlFor="name">Agent Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
 
-          <div>
-            <Label>Agent Avatar</Label>
-            <IconSelect
-              value={formData.icon_name}
-              onChange={(value) => setFormData({ ...formData, icon_name: value })}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+            <div>
+              <Label htmlFor="name" className="text-sm font-medium">
+                Agent Name *
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter agent name"
+                required
+                className="mt-1"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              value={formData.instructions}
-              onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-              rows={4}
-              required
-            />
-          </div>
+            <div>
+              <Label className="text-sm font-medium">Agent Avatar</Label>
+              <div className="mt-1">
+                <IconSelect
+                  value={formData.icon_name}
+                  onChange={(value) => setFormData({ ...formData, icon_name: value || "" })}
+                />
+              </div>
+            </div>
 
-          <div>
-            <Label htmlFor="tools">Tools</Label>
-            <select
-              id="tools"
-              multiple
-              value={formData.tools}
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions, (option) => option.value)
-                setFormData({ ...formData, tools: values })
-              }}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              size={4}
-            >
-              {availableTools.map((tool) => (
-                <option key={tool._id} value={tool._id}>
-                  {tool.name}
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1">Hold Ctrl (Windows) or Command (Mac) to select multiple tools</p>
-          </div>
+            <div>
+              <Label htmlFor="instructions" className="text-sm font-medium">
+                Instructions *
+              </Label>
+              <Textarea
+                id="instructions"
+                value={formData.instructions}
+                onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                placeholder="Describe what this agent should do and how it should behave..."
+                rows={6}
+                required
+                className="mt-1"
+              />
+            </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Creating..." : "Create Agent"}
-          </Button>
-        </form>
+            <div>
+              <Label className="text-sm font-medium">Tools</Label>
+              <div className="mt-2 space-y-3 max-h-60 overflow-y-auto border rounded-md p-4">
+                {isLoadingTools ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-sm text-gray-600">Loading tools...</span>
+                  </div>
+                ) : availableTools.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No tools available</p>
+                ) : (
+                  availableTools.map((tool) => (
+                    <div key={tool._id} className="flex items-start space-x-3">
+                      <Checkbox
+                        id={`tool-${tool._id}`}
+                        checked={formData.tools.includes(tool._id)}
+                        onCheckedChange={(checked) => handleToolToggle(tool._id, checked as boolean)}
+                      />
+                      <div className="flex-1">
+                        <Label 
+                          htmlFor={`tool-${tool._id}`} 
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          {tool.name}
+                        </Label>
+                        {tool.description && (
+                          <p className="text-xs text-gray-500 mt-1">{tool.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Selected tools: {formData.tools.length}
+              </p>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/agents")}
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || !formData.name.trim() || !formData.instructions.trim()} 
+                className="flex-1"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating...
+                  </>
+                ) : (
+                  "Create Agent"
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -8,7 +8,7 @@ import ChatWindow from "@/components/chat/ChatWindow"
 import AgentSelector from "@/components/chat/AgentSelector"
 import { chatAPI, agentAPI } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Bot, Menu, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageSquare, Bot, Menu, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { toast } from "sonner"
 
 interface Chat {
@@ -41,6 +41,23 @@ export default function DashboardPage() {
   const [chatListCollapsed, setChatListCollapsed] = useState(false)
   const [showAgentSelector, setShowAgentSelector] = useState(false)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
+
+  // Mobile responsive states
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true)
+        setChatListCollapsed(true)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     fetchInitialData()
@@ -109,6 +126,11 @@ export default function DashboardPage() {
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
+        
+        // On mobile, close chat list when chat is selected
+        if (isMobile) {
+          setChatListCollapsed(true)
+        }
       } else {
         throw new Error("Invalid response from server")
       }
@@ -150,6 +172,11 @@ export default function DashboardPage() {
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
+        
+        // On mobile, close chat list when chat is selected
+        if (isMobile) {
+          setChatListCollapsed(true)
+        }
       } else {
         throw new Error("Invalid response from server")
       }
@@ -220,6 +247,14 @@ export default function DashboardPage() {
     })
   }, [])
 
+  const handleChatSelect = (chatId: string) => {
+    setSelectedChatId(chatId)
+    // On mobile, close chat list when chat is selected
+    if (isMobile) {
+      setChatListCollapsed(true)
+    }
+  }
+
   const filteredChats = chats.filter((chat) => {
     if (activeTab === "general") return !chat.agent_id
     if (activeTab === "agents") return !!chat.agent_id
@@ -271,18 +306,18 @@ export default function DashboardPage() {
             {selectedChat ? (
               <ChatWindow chat={selectedChat} onChatUpdate={handleChatUpdate} />
             ) : (
-              <div className="flex items-center justify-center h-full bg-gray-50">
-                <div className="text-center max-w-md mx-auto p-6">
+              <div className="flex items-center justify-center h-full bg-gray-50 p-4">
+                <div className="text-center max-w-md mx-auto">
                   <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Atlas Prime</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-500 mb-6 text-sm sm:text-base">
                     Start a conversation with our AI or choose from your existing chats
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="flex flex-col gap-3 justify-center">
                     <Button
                       onClick={handleCreateGeneralChat}
                       variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
+                      className="flex items-center gap-2 bg-transparent w-full sm:w-auto"
                       disabled={isCreatingChat}
                     >
                       <MessageSquare className="w-4 h-4" />
@@ -290,7 +325,7 @@ export default function DashboardPage() {
                     </Button>
                     <Button
                       onClick={() => setShowAgentSelector(true)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 w-full sm:w-auto"
                       disabled={agents.length === 0 || isCreatingChat}
                     >
                       <Bot className="w-4 h-4" />
@@ -308,75 +343,97 @@ export default function DashboardPage() {
           {/* Chat List Sidebar - Right Side */}
           <div
             className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
-              chatListCollapsed ? "w-0 overflow-hidden" : "w-80"
-            }`}
+              chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80"
+            } ${isMobile ? 'absolute right-0 top-0 h-full z-20 shadow-lg' : ''}`}
           >
             {!chatListCollapsed && (
               <>
-                {/* Header */}
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleCreateGeneralChat}
-                        size="sm"
-                        variant="outline"
-                        className="flex items-center gap-1 bg-transparent"
-                        disabled={isCreatingChat}
+                {/* Mobile Overlay */}
+                {isMobile && (
+                  <div 
+                    className="fixed inset-0 bg-black bg-opacity-50 z-10" 
+                    onClick={() => setChatListCollapsed(true)} 
+                  />
+                )}
+
+                {/* Chat List Content */}
+                <div className="relative z-20 bg-white h-full flex flex-col">
+                  {/* Header */}
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+                      <div className="flex gap-2">
+                        {/* Mobile close button */}
+                        {isMobile && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setChatListCollapsed(true)}
+                            className="p-1.5"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          onClick={handleCreateGeneralChat}
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-1 bg-transparent text-xs sm:text-sm"
+                          disabled={isCreatingChat}
+                        >
+                          <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">General</span>
+                        </Button>
+                        <Button
+                          onClick={() => setShowAgentSelector(true)}
+                          size="sm"
+                          className="flex items-center gap-1 text-xs sm:text-sm"
+                          disabled={agents.length === 0 || isCreatingChat}
+                        >
+                          <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Agent</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={() => setActiveTab("all")}
+                        className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                          activeTab === "all" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
+                        }`}
                       >
-                        <MessageSquare className="w-4 h-4" />
-                        General
-                      </Button>
-                      <Button
-                        onClick={() => setShowAgentSelector(true)}
-                        size="sm"
-                        className="flex items-center gap-1"
-                        disabled={agents.length === 0 || isCreatingChat}
+                        All ({chats.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("general")}
+                        className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                          activeTab === "general" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
+                        }`}
                       >
-                        <Bot className="w-4 h-4" />
-                        Agent
-                      </Button>
+                        General ({chats.filter((c) => !c.agent_id).length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("agents")}
+                        className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                          activeTab === "agents" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        Agents ({chats.filter((c) => !!c.agent_id).length})
+                      </button>
                     </div>
                   </div>
 
-                  {/* Tabs */}
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={() => setActiveTab("all")}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === "all" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      All ({chats.length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("general")}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === "general" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      General ({chats.filter((c) => !c.agent_id).length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("agents")}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === "agents" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      Agents ({chats.filter((c) => !!c.agent_id).length})
-                    </button>
-                  </div>
+                  {/* Chat List */}
+                  <ChatList
+                    chats={filteredChats}
+                    selectedChatId={selectedChatId}
+                    onSelectChat={handleChatSelect}
+                    onDeleteChat={handleDeleteChat}
+                    onUpdateTitle={handleUpdateChatTitle}
+                  />
                 </div>
-
-                {/* Chat List */}
-                <ChatList
-                  chats={filteredChats}
-                  selectedChatId={selectedChatId}
-                  onSelectChat={setSelectedChatId}
-                  onDeleteChat={handleDeleteChat}
-                  onUpdateTitle={handleUpdateChatTitle}
-                />
               </>
             )}
           </div>

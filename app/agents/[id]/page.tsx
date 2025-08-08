@@ -155,7 +155,7 @@ export default function AgentDetailsPage({ params }: { params: { id: string } })
             </div>
           )}
 
-          <div className="border-t pt-8">
+          {/* <div className="border-t pt-8">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Test Agent</h2>
             <div className="space-y-4">
               <Textarea
@@ -181,7 +181,7 @@ export default function AgentDetailsPage({ params }: { params: { id: string } })
                 <div className="text-gray-600" dangerouslySetInnerHTML={{ __html: testResult }} />
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

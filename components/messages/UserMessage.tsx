@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { User } from "lucide-react"
+import { User } from 'lucide-react'
+import { formatDistanceToNow } from "date-fns"
 
 interface Message {
   id: string
@@ -16,28 +18,35 @@ interface UserMessageProps {
 }
 
 export default function UserMessage({ message }: UserMessageProps) {
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   return (
-    <div className="flex items-start space-x-3 justify-end">
-      <div className="flex flex-col items-end max-w-xs lg:max-w-md">
-        <div className="bg-blue-600 text-white rounded-lg px-4 py-2">
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-        </div>
-        {message.file_ids && message.file_ids.length > 0 && (
-          <div className="mt-1 text-xs text-gray-500">
-            📎 {message.file_ids.length} file{message.file_ids.length > 1 ? "s" : ""} attached
+    <div className="flex justify-end">
+      <div className={`flex items-start gap-2 sm:gap-3 ${isMobile ? 'max-w-[85%]' : 'max-w-[70%]'}`}>
+        <div className="flex flex-col items-end flex-1">
+          <div className="bg-blue-600 text-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+            <p className="text-sm sm:text-base whitespace-pre-wrap break-words">{message.content}</p>
           </div>
-        )}
-        <span className="text-xs text-gray-500 mt-1">{formatTime(message.created_at)}</span>
+          <span className="text-xs text-gray-500 mt-1">
+            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+          </span>
+        </div>
+        <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
+          <AvatarFallback className="bg-blue-100 text-blue-600">
+            <User className="w-3 h-3 sm:w-4 sm:h-4" />
+          </AvatarFallback>
+        </Avatar>
       </div>
-      <Avatar className="w-8 h-8 bg-blue-600">
-        <AvatarFallback>
-          <User className="w-4 h-4 text-white" />
-        </AvatarFallback>
-      </Avatar>
     </div>
   )
 }

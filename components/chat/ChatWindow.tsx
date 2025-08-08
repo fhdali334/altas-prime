@@ -39,7 +39,18 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     if (chat?.id) {
@@ -184,25 +195,25 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Chat Header */}
-      <div className="border-b border-gray-200 bg-white p-4">
+      <div className="border-b border-gray-200 bg-white p-3 sm:p-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{chat.title}</h2>
-            {chat.agent_name && <p className="text-sm text-blue-600">with {chat.agent_name}</p>}
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{chat.title}</h2>
+            {chat.agent_name && <p className="text-xs sm:text-sm text-blue-600">with {chat.agent_name}</p>}
           </div>
-          <div className="text-right text-xs text-gray-500">
+          <div className="text-right text-xs text-gray-500 ml-4">
             <div>{chat.message_count} messages</div>
-            {chat.total_tokens > 0 && <div>{chat.total_tokens.toLocaleString()} tokens</div>}
+            {chat.total_tokens > 0 && !isMobile && <div>{chat.total_tokens.toLocaleString()} tokens</div>}
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 p-2 sm:p-4">
+        <div className="space-y-3 sm:space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              <p>No messages yet. Start the conversation!</p>
+              <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
             </div>
           ) : (
             messages.map((message) => (

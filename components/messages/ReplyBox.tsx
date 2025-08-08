@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Paperclip, Link, X, Loader2 } from "lucide-react"
+import { Send, Paperclip, Link, X, Loader2 } from 'lucide-react'
 import { fileAPI } from "@/lib/api"
 import { toast } from "sonner"
 
@@ -25,8 +25,19 @@ export default function ReplyBox({
   const [urlInput, setUrlInput] = useState("")
   const [attachedFiles, setAttachedFiles] = useState<Array<{ id: string; name: string }>>([])
   const [isUploadingFile, setIsUploadingFile] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,20 +142,20 @@ export default function ReplyBox({
     // Auto-resize textarea
     const textarea = e.target
     textarea.style.height = "auto"
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px"
+    textarea.style.height = Math.min(textarea.scrollHeight, isMobile ? 100 : 120) + "px"
   }
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
+    <div className="border-t border-gray-200 bg-white p-3 sm:p-4">
       {/* Attached Files */}
       {attachedFiles.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {attachedFiles.map((file) => (
             <div
               key={file.id}
-              className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
+              className="flex items-center gap-2 bg-blue-50 text-blue-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
             >
-              <span className="truncate max-w-32">{file.name}</span>
+              <span className="truncate max-w-24 sm:max-w-32">{file.name}</span>
               <button
                 onClick={() => removeAttachedFile(file.id)}
                 className="hover:bg-blue-100 rounded-full p-0.5"
@@ -160,43 +171,47 @@ export default function ReplyBox({
 
       {/* URL Input */}
       {showUrlInput && (
-        <div className="mb-3 flex gap-2">
+        <div className="mb-3 flex flex-col sm:flex-row gap-2">
           <input
             type="url"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="Enter URL to process..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             onKeyPress={(e) => e.key === "Enter" && handleUrlProcess()}
             disabled={disabled || isProcessingUrl}
           />
-          <Button
-            onClick={handleUrlProcess}
-            disabled={!urlInput.trim() || isProcessingUrl || disabled}
-            size="sm"
-            type="button"
-          >
-            {isProcessingUrl ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                Processing...
-              </>
-            ) : (
-              "Process"
-            )}
-          </Button>
-          <Button
-            onClick={() => {
-              setShowUrlInput(false)
-              setUrlInput("")
-            }}
-            variant="outline"
-            size="sm"
-            type="button"
-            disabled={disabled}
-          >
-            Cancel
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleUrlProcess}
+              disabled={!urlInput.trim() || isProcessingUrl || disabled}
+              size="sm"
+              type="button"
+              className="flex-1 sm:flex-none"
+            >
+              {isProcessingUrl ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  Processing...
+                </>
+              ) : (
+                "Process"
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowUrlInput(false)
+                setUrlInput("")
+              }}
+              variant="outline"
+              size="sm"
+              type="button"
+              disabled={disabled}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 
@@ -210,7 +225,7 @@ export default function ReplyBox({
             onKeyPress={handleKeyPress}
             placeholder={disabled ? "AI is responding..." : placeholder}
             disabled={disabled}
-            className="min-h-[44px] max-h-[120px] resize-none"
+            className={`min-h-[44px] resize-none text-sm sm:text-base ${isMobile ? 'max-h-[100px]' : 'max-h-[120px]'}`}
             rows={1}
           />
         </div>
@@ -223,7 +238,7 @@ export default function ReplyBox({
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploadingFile}
-            className="px-3"
+            className="px-2 sm:px-3"
           >
             {isUploadingFile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
           </Button>
@@ -235,7 +250,7 @@ export default function ReplyBox({
             size="sm"
             onClick={() => setShowUrlInput(!showUrlInput)}
             disabled={disabled}
-            className="px-3"
+            className="px-2 sm:px-3"
           >
             <Link className="w-4 h-4" />
           </Button>
@@ -245,7 +260,7 @@ export default function ReplyBox({
             type="submit"
             disabled={disabled || (!message.trim() && attachedFiles.length === 0)}
             size="sm"
-            className="px-4"
+            className="px-3 sm:px-4"
           >
             {disabled ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>

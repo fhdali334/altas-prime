@@ -1,17 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  MessageSquare,
-  Bot,
-  Settings,
-  FileText,
-  BarChart3,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  User,
-} from "lucide-react"
+import { MessageSquare, Bot, Settings, FileText, BarChart3, LogOut, ChevronLeft, ChevronRight, User, Menu, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 
@@ -35,15 +25,19 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   return (
     <>
       {/* Mobile Overlay */}
-      {!isCollapsed && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={onToggle} />}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" 
+          onClick={onToggle} 
+        />
+      )}
 
       {/* Sidebar */}
       <div
         className={`
         fixed top-0 left-0 z-30 h-full bg-white border-r border-gray-200 transition-all duration-300
         ${isCollapsed ? "w-16" : "w-64"}
-        ${isCollapsed ? "lg:translate-x-0" : "translate-x-0"}
-        ${!isCollapsed ? "lg:translate-x-0" : ""}
+        ${isCollapsed ? "-translate-x-full lg:translate-x-0" : "translate-x-0"}
       `}
       >
         <div className="flex flex-col h-full">
@@ -58,8 +52,22 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   <span className="font-semibold text-gray-900">Atlas Prime</span>
                 </div>
               )}
-              <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onToggle} 
+                className="p-1.5 lg:flex hidden"
+              >
                 {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              </Button>
+              {/* Mobile close button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onToggle} 
+                className="p-1.5 lg:hidden"
+              >
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -72,6 +80,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={() => {
+                    // Close sidebar on mobile after navigation
+                    if (window.innerWidth < 1024) {
+                      onToggle?.()
+                    }
+                  }}
                   className={`
                     flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
                     ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"}

@@ -180,7 +180,7 @@ export default function CreateAgentPage() {
       >
         <div className="p-4 sm:p-6">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-6">Create New Agent</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-6 max-lg:ml-12">Create New Agent</h1>
 
             <AgentTemplates onSelect={handleTemplateSelect} />
 

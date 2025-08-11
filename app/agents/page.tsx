@@ -98,14 +98,14 @@ export default function AgentsPage() {
       <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"} overflow-y-auto`}>
         <div className="p-4 sm:p-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="flex justify-between items-start sm:items-center mb-6 gap-4 max-lg:ml-12">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Agents</h1>
             <Link href="/create-agent">
-              <Button className="flex items-center gap-2 w-full sm:w-auto">
+              <Button className="flex items-center gap-2 w-full sm:w-auto ">
                 <Plus className="w-4 h-4" />
                 Add Agent
               </Button>
-            </Link>
+            </Link> 
           </div>
 
           {/* Search */}

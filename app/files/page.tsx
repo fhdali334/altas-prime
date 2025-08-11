@@ -217,7 +217,7 @@ export default function FilesPage() {
             {/* Header */}
             <div className="bg-white border-b border-gray-200 p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+                <div className="max-lg:ml-12">
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Files</h1>
                   <p className="text-gray-600 text-sm sm:text-base">Manage your uploaded files and processed links</p>
                 </div>

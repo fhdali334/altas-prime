@@ -27,6 +27,16 @@ export const tokenManager = {
       localStorage.removeItem("user")
     }
   },
+  clearToken: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token")
+    }
+  },
+  clearUser: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user")
+    }
+  },
   getUser: () => {
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("user")

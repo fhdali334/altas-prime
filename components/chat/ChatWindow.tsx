@@ -46,10 +46,10 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
-    
+
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
             created_at: msg.created_at || new Date().toISOString(),
             file_ids: msg.file_ids || [],
           }))
-          .sort((a:any, b:any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
         setMessages(validMessages)
       } else {
@@ -195,25 +195,39 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Chat Header */}
-      <div className="border-b border-gray-200 bg-white p-3 sm:p-4">
+      <div className="border-b border-gray-200 bg-white p-3 sm:p-4 sm:pl-4 sm:pr-4">
         <div className="flex items-center justify-between">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{chat.title}</h2>
-            {chat.agent_name && <p className="text-xs sm:text-sm text-blue-600">with {chat.agent_name}</p>}
-          </div>
-          <div className="text-right text-xs text-gray-500 ml-4">
-            <div>{chat.message_count} messages</div>
+  <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+    {chat.title.length > 10 ? chat.title.slice(0, 10) + "..." : chat.title}
+  </h2>
+  {chat.agent_name && (
+    <p className="text-xs sm:text-sm text-blue-600">
+      with {chat.agent_name}
+    </p>
+  )}
+</div>
+
+          <div className="text-right text-xs text-gray-500 ml-4 flex-shrink-0 sm:mr-14 mr-10">
+            <div className=" ">{chat.message_count} messages</div>
             {chat.total_tokens > 0 && !isMobile && <div>{chat.total_tokens.toLocaleString()} tokens</div>}
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-2 sm:p-4">
+      <ScrollArea className="flex-1 p-2 sm:p-4 px-4 sm:px-4">
         <div className="space-y-3 sm:space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm sm:text-base">Loading messages...</p>
+                </div>
+              ) : (
+                <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
+              )}
             </div>
           ) : (
             messages.map((message) => (

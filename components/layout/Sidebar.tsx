@@ -1,7 +1,18 @@
 "use client"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { MessageSquare, Bot, Settings, FileText, BarChart3, LogOut, ChevronLeft, ChevronRight, User, Menu, X } from 'lucide-react'
+import { usePathname, useRouter } from "next/navigation"
+import {
+  MessageSquare,
+  Bot,
+  Settings,
+  FileText,
+  BarChart3,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  X,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 
@@ -20,17 +31,24 @@ const navigation = [
 
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push("/auth")
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Even if logout fails, redirect to auth
+      router.push("/auth")
+    }
+  }
 
   return (
     <>
       {/* Mobile Overlay */}
-      {!isCollapsed && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" 
-          onClick={onToggle} 
-        />
-      )}
+      {!isCollapsed && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={onToggle} />}
 
       {/* Sidebar */}
       <div
@@ -52,21 +70,11 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   <span className="font-semibold text-gray-900">Atlas Prime</span>
                 </div>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onToggle} 
-                className="p-1.5 lg:flex hidden"
-              >
+              <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5 lg:flex hidden">
                 {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
               </Button>
               {/* Mobile close button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onToggle} 
-                className="p-1.5 lg:hidden"
-              >
+              <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5 lg:hidden">
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -110,6 +118,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+                    {user.role === "admin" && <p className="text-xs text-blue-600 font-medium">Administrator</p>}
                   </div>
                 </div>
               </div>
@@ -117,7 +126,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
             <Button
               variant="ghost"
-              onClick={logout}
+              onClick={handleLogout}
               className={`
                 w-full flex items-center gap-3 text-red-600 hover:text-red-700 hover:bg-red-50
                 ${isCollapsed ? "justify-center px-2" : "justify-start"}

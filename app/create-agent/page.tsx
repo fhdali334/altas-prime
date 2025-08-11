@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { agentAPI, toolAPI } from "@/lib/api"
+import { useAuth } from "@/context/authContext"
 import AgentTemplates from "@/components/agents/AgentTemplates"
 import IconSelect from "@/components/agents/IconSelect"
 import { Button } from "@/components/ui/button"
@@ -13,17 +14,19 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Sidebar from "@/components/layout/Sidebar"
 import { useToast } from "@/hooks/use-toast"
-import { Menu } from 'lucide-react'
+import { Menu } from "lucide-react"
 
 interface Tool {
   _id: string
   name: string
   description?: string
+  display_name?: string
 }
 
 export default function CreateAgentPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { user, isLoading: authLoading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingTools, setIsLoadingTools] = useState(true)
   const [availableTools, setAvailableTools] = useState<Tool[]>([])
@@ -45,11 +48,22 @@ export default function CreateAgentPage() {
         setSidebarCollapsed(true)
       }
     }
-    
+
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  useEffect(() => {
+    if (!authLoading && user && user.role !== "admin") {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can create agents.",
+        variant: "destructive",
+      })
+      router.push("/dashboard")
+    }
+  }, [user, authLoading, router, toast])
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -57,10 +71,12 @@ export default function CreateAgentPage() {
         setIsLoadingTools(true)
         const response = await toolAPI.getAll()
         console.log("Available tools:", response.data)
-        setAvailableTools(response.data || [])
+        const tools = Array.isArray(response.data) ? response.data : []
+        setAvailableTools(tools)
       } catch (error) {
         console.error("Error fetching tools:", error)
         setError("Failed to load available tools")
+        setAvailableTools([])
       } finally {
         setIsLoadingTools(false)
       }
@@ -89,24 +105,21 @@ export default function CreateAgentPage() {
       console.log("Creating agent with payload:", payload)
 
       const response = await agentAPI.create(payload)
-      
+
       console.log("Agent created successfully:", response.data)
-      
+
       toast({
         title: "Success",
         description: "Agent created successfully!",
       })
 
-      // Redirect to agents page or the specific agent page
       router.push("/agents")
     } catch (error: any) {
       console.error("Error creating agent:", error)
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
-                          "Failed to create agent"
+      const errorMessage =
+        error.response?.data?.detail || error.response?.data?.message || error.message || "Failed to create agent"
       setError(errorMessage)
-      
+
       toast({
         title: "Error",
         description: errorMessage,
@@ -130,28 +143,41 @@ export default function CreateAgentPage() {
     if (checked) {
       setFormData({
         ...formData,
-        tools: [...formData.tools, toolId]
+        tools: [...formData.tools, toolId],
       })
     } else {
       setFormData({
         ...formData,
-        tools: formData.tools.filter(id => id !== toolId)
+        tools: formData.tools.filter((id) => id !== toolId),
       })
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!user || user.role !== "admin") {
+    return null
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
-      {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-30">
         <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
           <Menu className="w-4 h-4" />
         </Button>
       </div>
 
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"}`}>
+      <div
+        className={`flex-1 overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"}`}
+      >
         <div className="p-4 sm:p-6">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl sm:text-3xl font-bold mb-6">Create New Agent</h1>
@@ -207,7 +233,9 @@ export default function CreateAgentPage() {
 
                 <div>
                   <Label className="text-sm font-medium">Tools</Label>
-                  <div className={`mt-2 space-y-3 border rounded-md p-4 ${isMobile ? 'max-h-48' : 'max-h-60'} overflow-y-auto`}>
+                  <div
+                    className={`mt-2 space-y-3 border rounded-md p-4 ${isMobile ? "max-h-48" : "max-h-60"} overflow-y-auto`}
+                  >
                     {isLoadingTools ? (
                       <div className="flex items-center justify-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -224,23 +252,16 @@ export default function CreateAgentPage() {
                             onCheckedChange={(checked) => handleToolToggle(tool._id, checked as boolean)}
                           />
                           <div className="flex-1 min-w-0">
-                            <Label 
-                              htmlFor={`tool-${tool._id}`} 
-                              className="text-sm font-medium cursor-pointer"
-                            >
-                              {tool.name}
+                            <Label htmlFor={`tool-${tool._id}`} className="text-sm font-medium cursor-pointer">
+                              {tool.display_name || tool.name}
                             </Label>
-                            {tool.description && (
-                              <p className="text-xs text-gray-500 mt-1">{tool.description}</p>
-                            )}
+                            {tool.description && <p className="text-xs text-gray-500 mt-1">{tool.description}</p>}
                           </div>
                         </div>
                       ))
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Selected tools: {formData.tools.length}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-2">Selected tools: {formData.tools.length}</p>
                 </div>
               </div>
 
@@ -254,9 +275,9 @@ export default function CreateAgentPage() {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting || !formData.name.trim() || !formData.instructions.trim()} 
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !formData.name.trim() || !formData.instructions.trim()}
                   className="w-full sm:flex-1"
                 >
                   {isSubmitting ? (

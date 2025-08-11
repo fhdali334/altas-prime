@@ -8,7 +8,7 @@ import ChatWindow from "@/components/chat/ChatWindow"
 import AgentSelector from "@/components/chat/AgentSelector"
 import { chatAPI, agentAPI } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Bot, Menu, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { MessageSquare, Bot, Menu, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { toast } from "sonner"
 
 interface Chat {
@@ -53,10 +53,10 @@ export default function DashboardPage() {
         setChatListCollapsed(true)
       }
     }
-    
+
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
-        
+
         // On mobile, close chat list when chat is selected
         if (isMobile) {
           setChatListCollapsed(true)
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
-        
+
         // On mobile, close chat list when chat is selected
         if (isMobile) {
           setChatListCollapsed(true)
@@ -284,20 +284,22 @@ export default function DashboardPage() {
         <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
         {/* Mobile menu button */}
-        <div className="lg:hidden fixed top-4 left-4 z-30">
+        <div className="lg:hidden fixed top-4 left-4 z-40">
           <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
             <Menu className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className={`flex-1 flex transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"}`}>
+        <div
+          className={`flex-1 flex transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"} ${isMobile ? "pt-16" : ""}`}
+        >
           {/* Main Chat Area */}
           <div className="flex-1 relative">
             {/* Chat List Toggle Button */}
             <Button
               variant="outline"
               size="sm"
-              className="absolute top-4 right-4 z-10 bg-white shadow-sm"
+              className={`absolute top-4 right-4 z-10 bg-white shadow-sm ${isMobile ? "top-2 right-2" : ""}`}
               onClick={() => setChatListCollapsed(!chatListCollapsed)}
             >
               {chatListCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -308,32 +310,41 @@ export default function DashboardPage() {
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-50 p-4">
                 <div className="text-center max-w-md mx-auto">
-                  <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Atlas Prime</h3>
-                  <p className="text-gray-500 mb-6 text-sm sm:text-base">
-                    Start a conversation with our AI or choose from your existing chats
-                  </p>
-                  <div className="flex flex-col gap-3 justify-center">
-                    <Button
-                      onClick={handleCreateGeneralChat}
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent w-full sm:w-auto"
-                      disabled={isCreatingChat}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      {isCreatingChat ? "Creating..." : "New General Chat"}
-                    </Button>
-                    <Button
-                      onClick={() => setShowAgentSelector(true)}
-                      className="flex items-center gap-2 w-full sm:w-auto"
-                      disabled={agents.length === 0 || isCreatingChat}
-                    >
-                      <Bot className="w-4 h-4" />
-                      Chat with Agent
-                    </Button>
-                  </div>
-                  {agents.length === 0 && (
-                    <p className="text-sm text-gray-400 mt-2">No agents available. Create an agent first.</p>
+                  {isCreatingChat ? (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Creating chat...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Atlas Prime</h3>
+                      <p className="text-gray-500 mb-6 text-sm sm:text-base">
+                        Start a conversation with our AI or choose from your existing chats
+                      </p>
+                      <div className="flex flex-col gap-3 justify-center">
+                        <Button
+                          onClick={handleCreateGeneralChat}
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent w-full sm:w-auto"
+                          disabled={isCreatingChat}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          {isCreatingChat ? "Creating..." : "New General Chat"}
+                        </Button>
+                        <Button
+                          onClick={() => setShowAgentSelector(true)}
+                          className="flex items-center gap-2 w-full sm:w-auto"
+                          disabled={agents.length === 0 || isCreatingChat}
+                        >
+                          <Bot className="w-4 h-4" />
+                          Chat with Agent
+                        </Button>
+                      </div>
+                      {agents.length === 0 && (
+                        <p className="text-sm text-gray-400 mt-2">No agents available. Create an agent first.</p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -344,24 +355,24 @@ export default function DashboardPage() {
           <div
             className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
               chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80"
-            } ${isMobile ? 'absolute right-0 top-0 h-full z-20 shadow-lg' : ''}`}
+            } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-lg" : ""}`}
           >
             {!chatListCollapsed && (
               <>
                 {/* Mobile Overlay */}
                 {isMobile && (
-                  <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-10" 
-                    onClick={() => setChatListCollapsed(true)} 
+                  <div
+                    className="fixed inset-0 bg-black bg-opacity-50 z-20"
+                    onClick={() => setChatListCollapsed(true)}
                   />
                 )}
 
                 {/* Chat List Content */}
-                <div className="relative z-20 bg-white h-full flex flex-col">
+                <div className="relative z-30 bg-white h-full flex flex-col">
                   {/* Header */}
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+                      <h2 className="text-lg font-semibold text-gray-900 max-sm:ml-12">Chats</h2>
                       <div className="flex gap-2">
                         {/* Mobile close button */}
                         {isMobile && (

@@ -86,7 +86,7 @@ export const agentAPI = {
     // Ensure tools is always an array
     const payload = {
       ...data,
-      tools: data.tools || []
+      tools: data.tools || [],
     }
     console.log("API call payload:", payload)
     return api.post("/agents", payload)
@@ -103,7 +103,7 @@ export const agentAPI = {
     // Ensure tools is always an array
     const payload = {
       ...data,
-      tools: data.tools || []
+      tools: data.tools || [],
     }
     return api.put(`/agents/${id}`, payload)
   },
@@ -141,7 +141,14 @@ export const fileAPI = {
 
 // Tool API functions
 export const toolAPI = {
-  getAll: () => api.get("/tools"),
+  getAll: () =>
+    api.get("/tools").then((response) => {
+      // Handle both old format (direct array) and new format ({tools: [], total: number})
+      if (response.data && Array.isArray(response.data.tools)) {
+        return { ...response, data: response.data.tools }
+      }
+      return response
+    }),
 }
 
 // Legacy endpoints (deprecated but kept for compatibility)

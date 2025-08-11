@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { authService, tokenManager } from "@/lib/auth-api"
+import { useRouter } from "next/navigation"
 
 interface User {
   id: string
@@ -10,6 +11,7 @@ interface User {
   username: string
   is_verified: boolean
   created_at: string
+  role: string
 }
 
 interface AuthContextType {
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   const isAuthenticated = !!user
 
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           // Token is invalid, clear storage
           tokenManager.removeToken()
+          tokenManager.clearUser()
           setUser(null)
         }
       }
@@ -85,7 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error)
     } finally {
       tokenManager.removeToken()
+      tokenManager.clearUser()
       setUser(null)
+      router.push("/auth")
     }
   }
 

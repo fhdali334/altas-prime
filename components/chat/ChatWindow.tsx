@@ -183,7 +183,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center my-auto mt-48">
         <div className="text-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-sm text-gray-600">Loading messages...</p>
@@ -221,7 +221,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center justify-center my-auto">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
                   <p className="text-sm sm:text-base">Loading messages...</p>
                 </div>

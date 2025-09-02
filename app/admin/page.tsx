@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function AdminPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true) // Start collapsed on mobile
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const { users, systemAnalytics, systemStats, isLoading, error, fetchUsers, deleteUser, fetchUserDetails } = useAdmin()
@@ -96,8 +96,13 @@ export default function AdminPage() {
       <div className="flex h-screen bg-gray-50">
         <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
-        <div className="lg:hidden fixed top-4 left-4 z-30">
-          <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+        <div className="lg:hidden fixed top-4 left-4 z-40">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="bg-white shadow-md"
+          >
             <Menu className="w-4 h-4" />
           </Button>
         </div>
@@ -107,9 +112,14 @@ export default function AdminPage() {
         >
           <div className="p-4 sm:p-6">
             <div className="max-w-7xl mx-auto">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 max-lg:ml-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pt-12 lg:pt-0">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">Admin Dashboard</h1>
-                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                  className="w-full sm:w-auto"
+                >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh
                 </Button>
@@ -123,7 +133,7 @@ export default function AdminPage() {
 
               {/* System Overview Cards */}
               {systemStats && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -180,14 +190,14 @@ export default function AdminPage() {
 
               {/* System Analytics Charts */}
               {systemAnalytics && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-8">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Daily Platform Usage</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Daily Platform Usage</CardTitle>
                       <CardDescription>Token consumption across the platform</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <LineChart data={systemAnalytics.system_analytics.daily_platform_usage}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
@@ -201,11 +211,11 @@ export default function AdminPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Top Users by Cost</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Top Users by Cost</CardTitle>
                       <CardDescription>Highest spending users</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <BarChart data={systemAnalytics.system_analytics.most_expensive_users}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="email" />
@@ -222,10 +232,10 @@ export default function AdminPage() {
               {/* User Management */}
               <Card>
                 <CardHeader>
-                  <CardTitle>User Management</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">User Management</CardTitle>
                   <CardDescription>Manage system users and their access</CardDescription>
                   <div className="flex gap-2 mt-4">
-                    <div className="relative flex-1 max-w-sm">
+                    <div className="relative flex-1">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search users..."
@@ -237,15 +247,20 @@ export default function AdminPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {filteredUsers.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div
+                        key={user.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-0"
+                      >
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{user.username}</h4>
-                            <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <h4 className="font-medium text-sm sm:text-base">{user.username}</h4>
+                            <Badge variant={user.role === "admin" ? "default" : "secondary"} className="text-xs">
+                              {user.role}
+                            </Badge>
                             {!user.is_verified && (
-                              <Badge variant="destructive">
+                              <Badge variant="destructive" className="text-xs">
                                 <AlertTriangle className="w-3 h-3 mr-1" />
                                 Unverified
                               </Badge>
@@ -257,42 +272,44 @@ export default function AdminPage() {
                             {new Date(user.last_login).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className="text-right mr-4">
-                          <p className="text-sm font-medium">{user.total_tokens_used.toLocaleString()} tokens</p>
-                          <p className="text-sm text-muted-foreground">${user.total_cost.toFixed(4)}</p>
-                          <p className="text-xs text-muted-foreground">{user.total_chats} chats</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleViewUser(user.id)}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {user.role !== "admin" && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <Trash2 className="w-4 h-4 text-red-500" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete user "{user.email}"? This action cannot be undone
-                                    and will delete all associated data including chats, messages, and files.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteUser(user.id, user.email)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Delete User
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
+                        <div className="flex flex-row sm:flex-col items-start sm:items-end justify-between sm:justify-start sm:text-right sm:mr-4">
+                          <div>
+                            <p className="text-sm font-medium">{user.total_tokens_used.toLocaleString()} tokens</p>
+                            <p className="text-sm text-muted-foreground">${user.total_cost.toFixed(4)}</p>
+                            <p className="text-xs text-muted-foreground">{user.total_chats} chats</p>
+                          </div>
+                          <div className="flex gap-2 sm:mt-2">
+                            <Button variant="outline" size="sm" onClick={() => handleViewUser(user.id)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            {user.role !== "admin" && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="mx-4">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete user "{user.email}"? This action cannot be undone
+                                      and will delete all associated data including chats, messages, and files.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                    <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteUser(user.id, user.email)}
+                                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                                    >
+                                      Delete User
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

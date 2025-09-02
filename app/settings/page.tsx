@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Save, Trash2 } from "lucide-react"
+import { Save, Trash2, Menu } from "lucide-react"
 
 interface Settings {
   model_settings: {
@@ -30,6 +30,21 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true)
+      }
+    }
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -79,8 +94,19 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar />
-        <div className="flex-1 ml-64 flex items-center justify-center">
+        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {isMobile && (
+          <div className="fixed top-4 left-4 z-40">
+            <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+              <Menu className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+        <div
+          className={`flex-1 flex items-center justify-center transition-all duration-300 ${
+            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+          } ${isMobile ? "pt-16" : ""}`}
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
@@ -90,8 +116,19 @@ export default function SettingsPage() {
   if (!settings) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar />
-        <div className="flex-1 ml-64 p-6">
+        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {isMobile && (
+          <div className="fixed top-4 left-4 z-40">
+            <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+              <Menu className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+        <div
+          className={`flex-1 p-4 sm:p-6 transition-all duration-300 ${
+            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+          } ${isMobile ? "pt-16" : ""}`}
+        >
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-600">{error || "Failed to load settings"}</p>
           </div>
@@ -102,9 +139,22 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 ml-64 overflow-y-auto p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+      <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+
+      {isMobile && (
+        <div className="fixed top-4 left-4 z-40">
+          <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+            <Menu className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      <div
+        className={`flex-1 overflow-y-auto p-4 sm:p-6 transition-all duration-300 ${
+          sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+        } ${isMobile ? "pt-16" : ""}`}
+      >
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Settings</h1>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -112,15 +162,17 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="space-y-8 max-w-4xl">
+        <div className="space-y-6 sm:space-y-8 max-w-4xl">
           {/* Model Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle>Model Configuration</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Model Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="model">Model Name</Label>
+                <Label htmlFor="model" className="text-sm sm:text-base">
+                  Model Name
+                </Label>
                 <select
                   id="model"
                   value={settings.model_settings.model_name}
@@ -130,7 +182,7 @@ export default function SettingsPage() {
                       model_settings: { ...settings.model_settings, model_name: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 >
                   <option value="gpt-4">GPT-4</option>
                   <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -140,7 +192,9 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <Label htmlFor="temperature">Temperature: {settings.model_settings.temperature}</Label>
+                <Label htmlFor="temperature" className="text-sm sm:text-base">
+                  Temperature: {settings.model_settings.temperature}
+                </Label>
                 <input
                   id="temperature"
                   type="range"
@@ -156,14 +210,16 @@ export default function SettingsPage() {
                   }
                   className="w-full"
                 />
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-500 mt-1">
                   <span>More Focused</span>
                   <span>More Creative</span>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="maxTokens">Max Tokens</Label>
+                <Label htmlFor="maxTokens" className="text-sm sm:text-base">
+                  Max Tokens
+                </Label>
                 <Input
                   id="maxTokens"
                   type="number"
@@ -175,13 +231,14 @@ export default function SettingsPage() {
                     })
                   }
                   placeholder="e.g. 2000"
+                  className="text-sm sm:text-base"
                 />
               </div>
 
               <Button
                 onClick={() => saveSettings("model_settings", settings.model_settings)}
                 disabled={saving}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto text-sm sm:text-base"
               >
                 <Save className="w-4 h-4" />
                 {saving ? "Saving..." : "Save Changes"}
@@ -192,11 +249,13 @@ export default function SettingsPage() {
           {/* Log Management */}
           <Card>
             <CardHeader>
-              <CardTitle>Log Management</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Log Management</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="retention">Log Retention Period</Label>
+                <Label htmlFor="retention" className="text-sm sm:text-base">
+                  Log Retention Period
+                </Label>
                 <select
                   id="retention"
                   value={settings.log_settings.retention_period_days}
@@ -209,7 +268,7 @@ export default function SettingsPage() {
                       },
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 >
                   <option value="7">7 days</option>
                   <option value="14">14 days</option>
@@ -223,7 +282,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-700">Auto-delete Expired Logs</h3>
-                  <p className="text-sm text-gray-500">Automatically remove logs older than the retention period</p>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Automatically remove logs older than the retention period
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -241,16 +302,20 @@ export default function SettingsPage() {
                 </label>
               </div>
 
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
                 <Button
                   onClick={() => saveSettings("log_settings", settings.log_settings)}
                   disabled={saving}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full sm:w-auto text-sm sm:text-base"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button onClick={deleteAllLogs} variant="destructive" className="flex items-center gap-2">
+                <Button
+                  onClick={deleteAllLogs}
+                  variant="destructive"
+                  className="flex items-center gap-2 w-full sm:w-auto text-sm sm:text-base"
+                >
                   <Trash2 className="w-4 h-4" />
                   Delete All Logs
                 </Button>
@@ -261,11 +326,13 @@ export default function SettingsPage() {
           {/* Profile Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Profile Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm sm:text-base">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -277,11 +344,14 @@ export default function SettingsPage() {
                     })
                   }
                   placeholder="your@email.com"
+                  className="text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <Label htmlFor="username">Display Name</Label>
+                <Label htmlFor="username" className="text-sm sm:text-base">
+                  Display Name
+                </Label>
                 <Input
                   id="username"
                   value={settings.profile_settings.username}
@@ -292,13 +362,14 @@ export default function SettingsPage() {
                     })
                   }
                   placeholder="Your Name"
+                  className="text-sm sm:text-base"
                 />
               </div>
 
               <Button
                 onClick={() => saveSettings("profile_settings", settings.profile_settings)}
                 disabled={saving}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto text-sm sm:text-base"
               >
                 <Save className="w-4 h-4" />
                 {saving ? "Saving..." : "Save Changes"}

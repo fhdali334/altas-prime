@@ -1,5 +1,4 @@
 "use client"
-import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   MessageSquare,
@@ -47,6 +46,14 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
     }
   }
 
+  const handleNavigation = (href: string) => {
+    // Close sidebar on mobile after navigation
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && onToggle) {
+      onToggle()
+    }
+    router.push(href)
+  }
+
   const allNavigation = user?.role === "admin" ? [...navigation, ...adminNavigation] : navigation
 
   return (
@@ -89,17 +96,11 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             {allNavigation.map((item) => {
               const isActive = pathname === item.href
               return (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  onClick={() => {
-                    // Close sidebar on mobile after navigation
-                    if (window.innerWidth < 1024) {
-                      onToggle?.()
-                    }
-                  }}
+                  onClick={() => handleNavigation(item.href)}
                   className={`
-                    flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                    w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left
                     ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"}
                     ${isCollapsed ? "justify-center" : ""}
                   `}
@@ -107,7 +108,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
                   {!isCollapsed && <span className="font-medium">{item.name}</span>}
-                </Link>
+                </button>
               )
             })}
           </nav>

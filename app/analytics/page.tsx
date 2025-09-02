@@ -26,7 +26,7 @@ import {
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
 export default function AnalyticsPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true) // Start collapsed on mobile
   const [selectedPeriod, setSelectedPeriod] = useState("30")
   const { dashboardData, usageData, isLoading, error, fetchUsageData, fetchDashboardData } = useAnalytics()
 
@@ -63,8 +63,13 @@ export default function AnalyticsPage() {
       <div className="flex h-screen bg-gray-50">
         <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
-        <div className="lg:hidden fixed top-4 left-4 z-30">
-          <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+        <div className="lg:hidden fixed top-4 left-4 z-40">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="bg-white shadow-md"
+          >
             <Menu className="w-4 h-4" />
           </Button>
         </div>
@@ -74,11 +79,11 @@ export default function AnalyticsPage() {
         >
           <div className="p-4 sm:p-6">
             <div className="max-w-7xl mx-auto">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 max-lg:ml-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pt-12 lg:pt-0">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">Analytics Dashboard</h1>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-full sm:w-32">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -87,8 +92,14 @@ export default function AnalyticsPage() {
                       <SelectItem value="90">Last 90 days</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" size="sm" onClick={handleRefresh}>
-                    <RefreshCw className="w-4 h-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    className="w-full sm:w-auto bg-transparent"
+                  >
+                    <RefreshCw className="w-4 h-4 sm:mr-2" />
+                    <span className="sm:inline hidden">Refresh</span>
                   </Button>
                 </div>
               </div>
@@ -101,7 +112,7 @@ export default function AnalyticsPage() {
 
               {/* Overview Cards */}
               {dashboardData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">Today's Usage</CardTitle>
@@ -158,15 +169,15 @@ export default function AnalyticsPage() {
 
               {/* Charts */}
               {usageData && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-8">
                   {/* Daily Usage Chart */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Daily Token Usage</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Daily Token Usage</CardTitle>
                       <CardDescription>Token consumption over time</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <LineChart data={usageData.daily_usage}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
@@ -181,11 +192,11 @@ export default function AnalyticsPage() {
                   {/* Agent Usage Chart */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Usage by Agent</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Usage by Agent</CardTitle>
                       <CardDescription>Token distribution across agents</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <PieChart>
                           <Pie
                             data={usageData.agent_usage}
@@ -210,11 +221,11 @@ export default function AnalyticsPage() {
                   {/* Cost Analysis */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Daily Cost Analysis</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Daily Cost Analysis</CardTitle>
                       <CardDescription>Cost breakdown over time</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <BarChart data={usageData.daily_usage}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
@@ -229,10 +240,10 @@ export default function AnalyticsPage() {
                   {/* Usage Summary */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Usage Summary</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">Usage Summary</CardTitle>
                       <CardDescription>Key metrics for the selected period</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3 sm:space-y-4">
                       <div className="flex justify-between">
                         <span className="text-sm font-medium">Total Tokens:</span>
                         <span className="text-sm">{usageData.total_tokens_used.toLocaleString()}</span>
@@ -266,21 +277,24 @@ export default function AnalyticsPage() {
               {dashboardData?.recent_chats && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Recent Chats</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Recent Chats</CardTitle>
                     <CardDescription>Your most recent chat activity</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {dashboardData.recent_chats.map((chat) => (
-                        <div key={chat.chat_id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div
+                          key={chat.chat_id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-0"
+                        >
                           <div className="flex-1">
-                            <h4 className="font-medium">{chat.title}</h4>
+                            <h4 className="font-medium text-sm sm:text-base">{chat.title}</h4>
                             <p className="text-sm text-muted-foreground">{chat.agent_name}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(chat.last_activity).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <p className="text-sm font-medium">{chat.total_tokens.toLocaleString()} tokens</p>
                             <p className="text-sm text-muted-foreground">${chat.total_cost.toFixed(4)}</p>
                             <p className="text-xs text-muted-foreground">{chat.message_count} messages</p>

@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { authService, tokenManager } from "@/lib/auth-api"
 import { useRouter } from "next/navigation"
 
-interface User {
+export interface User {
   id: string
   email: string
   username: string

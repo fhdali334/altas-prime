@@ -71,6 +71,10 @@ export const chatAPI = {
 
   // Update chat title
   updateTitle: (chatId: string, title: string) => api.patch(`/chats/${chatId}/title`, { title }),
+
+  getUsageSummary: (chatId: string) => api.get(`/chats/${chatId}/usage-summary`),
+
+  getUsageChartData: (chatId: string) => api.get(`/chats/${chatId}/usage-chart-data`),
 }
 
 // Agent API functions
@@ -192,4 +196,44 @@ export const statusAPI = {
   get: () => api.get("/status"),
   getLogs: () => api.get("/logs"),
   exportLogs: () => api.get("/log-exports", { responseType: "blob" }),
+}
+
+export const analyticsAPI = {
+  // Personal Usage Analytics
+  getUsage: (params?: {
+    period_days?: number
+    include_daily_breakdown?: boolean
+    include_agent_breakdown?: boolean
+  }) => api.get("/analytics/usage", { params }),
+
+  // Real-Time Usage Updates
+  getRealtime: (chatId: string) => api.get(`/analytics/realtime/${chatId}`),
+
+  // Chat-Specific Analytics
+  getChatAnalytics: (
+    chatId: string,
+    params?: {
+      include_message_breakdown?: boolean
+    },
+  ) => api.get(`/analytics/chats/${chatId}`, { params }),
+
+  // User Dashboard Data
+  getDashboard: () => api.get("/analytics/dashboard"),
+}
+
+export const adminAPI = {
+  // List All Users
+  getUsers: () => api.get("/admin/users"),
+
+  // Get User Details
+  getUserById: (userId: string) => api.get(`/admin/users/${userId}`),
+
+  // Delete User
+  deleteUser: (userId: string, params?: { confirm?: boolean }) => api.delete(`/admin/users/${userId}`, { params }),
+
+  // Admin Analytics (Get system-wide analytics)
+  getAnalytics: (params?: { period_days?: number }) => api.get("/admin/analytics", { params }),
+
+  // System Statistics (Get comprehensive system statistics)
+  getSystemStatistics: () => api.get("/admin/system/statistics"),
 }

@@ -29,6 +29,8 @@ const navigation = [
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
+const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Settings }]
+
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -44,6 +46,8 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       router.push("/auth")
     }
   }
+
+  const allNavigation = user?.role === "admin" ? [...navigation, ...adminNavigation] : navigation
 
   return (
     <>
@@ -82,7 +86,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2">
-            {navigation.map((item) => {
+            {allNavigation.map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link

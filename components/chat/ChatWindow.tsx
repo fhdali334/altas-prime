@@ -183,8 +183,8 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center my-auto mt-48">
-        <div className="text-center">
+      <div className="flex-1 flex items-center justify-center  ">
+        <div className="text-center my-auto">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-sm text-gray-600">Loading messages...</p>
         </div>

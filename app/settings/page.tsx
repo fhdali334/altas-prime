@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { settingsAPI } from "@/lib/api"
-import Sidebar from "@/components/layout/Sidebar"
+import { authService } from "@/lib/auth-api"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,8 +25,16 @@ interface Settings {
   }
 }
 
+interface User {
+  id: string
+  email: string
+  username: string
+  is_verified: boolean
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,18 +55,19 @@ export default function SettingsPage() {
   }, [])
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await settingsAPI.get()
-        setSettings(response.data)
+        const [settingsResponse, userResponse] = await Promise.all([settingsAPI.get(), authService.getMe()])
+        setSettings(settingsResponse.data)
+        setUser(userResponse.data)
       } catch (err) {
-        setError("Failed to load settings")
-        console.error("Error fetching settings:", err)
+        setError("Failed to load data")
+        console.error("Error fetching data:", err)
       } finally {
         setLoading(false)
       }
     }
-    fetchSettings()
+    fetchData()
   }, [])
 
   const saveSettings = async (section: keyof Settings, data: any) => {
@@ -94,7 +103,6 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
         {isMobile && (
           <div className="fixed top-4 left-4 z-40">
             <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
@@ -116,7 +124,6 @@ export default function SettingsPage() {
   if (!settings) {
     return (
       <div className="flex h-screen bg-gray-50">
-        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
         {isMobile && (
           <div className="fixed top-4 left-4 z-40">
             <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
@@ -139,16 +146,6 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
-
-      {/* {isMobile && (
-        <div className="fixed top-4 left-4 z-40">
-          <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-            <Menu className="w-4 h-4" />
-          </Button>
-        </div>
-      )} */}
-
       <div
         className={`flex-1 overflow-y-auto p-4 sm:p-6 transition-all duration-300 ${
           sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 "
@@ -173,7 +170,7 @@ export default function SettingsPage() {
                 <Label htmlFor="model" className="text-sm sm:text-base">
                   Model Name
                 </Label>
-                {/* <select
+                <Input
                   id="model"
                   value={settings.model_settings.model_name}
                   onChange={(e) =>
@@ -183,18 +180,7 @@ export default function SettingsPage() {
                     })
                   }
                   className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                > */}
-                  <Input  id="model"
-                  value={settings.model_settings.model_name}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      model_settings: { ...settings.model_settings, model_name: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 />
-                {/* </select> */}
               </div>
 
               <div>
@@ -336,50 +322,22 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-sm sm:text-base">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={settings.profile_settings.email}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      profile_settings: { ...settings.profile_settings, email: e.target.value },
-                    })
-                  }
-                  placeholder="your@email.com"
-                  className="text-sm sm:text-base"
-                />
+                <Label className="text-sm sm:text-base font-medium text-gray-700">Email</Label>
+                <div className="mt-1 px-3 sm:px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm sm:text-base text-gray-900">
+                  {user?.email || "Loading..."}
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="username" className="text-sm sm:text-base">
-                  Display Name
-                </Label>
-                <Input
-                  id="username"
-                  value={settings.profile_settings.username}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      profile_settings: { ...settings.profile_settings, username: e.target.value },
-                    })
-                  }
-                  placeholder="Your Name"
-                  className="text-sm sm:text-base"
-                />
+                <Label className="text-sm sm:text-base font-medium text-gray-700">Username</Label>
+                <div className="mt-1 px-3 sm:px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm sm:text-base text-gray-900">
+                  {user?.username || "Loading..."}
+                </div>
               </div>
 
-              <Button
-                onClick={() => saveSettings("profile_settings", settings.profile_settings)}
-                disabled={saving}
-                className="flex items-center gap-2 w-full sm:w-auto text-sm sm:text-base"
-              >
-                <Save className="w-4 h-4" />
-                {saving ? "Saving..." : "Save Changes"}
-              </Button>
+              <div className="text-xs sm:text-sm text-gray-500 mt-2">
+                Profile information is managed through your account settings.
+              </div>
             </CardContent>
           </Card>
         </div>

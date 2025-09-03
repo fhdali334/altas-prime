@@ -265,8 +265,8 @@ export default function ChatPage() {
       <div className="flex h-screen bg-gray-50">
         <div className="flex-1 relative">
           {/* Back button and Chat List Toggle */}
-          <div className="absolute top-4 left-4 right-4 z-10 flex justify-between">
-            <Button
+          {/* <div className="absolute top-4 left-4 right-4 z-10 flex justify-between"> */}
+            {/* <Button
               variant="outline"
               size="sm"
               onClick={() => router.push("/dashboard")}
@@ -274,16 +274,16 @@ export default function ChatPage() {
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
-            </Button>
-            <Button
+            </Button> */}
+            {/* <Button
               variant="outline"
               size="sm"
               className="bg-white shadow-sm"
               onClick={() => setChatListCollapsed(!chatListCollapsed)}
             >
               {chatListCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </Button>
-          </div>
+            </Button> */}
+          {/* </div> */}
 
           {selectedChat ? (
             <ChatWindow chat={selectedChat} onChatUpdate={handleChatUpdate} />
@@ -304,7 +304,7 @@ export default function ChatPage() {
 
         {/* Chat List Sidebar */}
         <div
-          className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
+          className={`bg-white  border-gray-200 flex flex-col transition-all duration-300 ${
             chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80 lg:w-96"
           } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-lg" : ""}`}
         >

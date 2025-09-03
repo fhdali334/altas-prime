@@ -112,7 +112,7 @@ export default function ExportsPage() {
           </Card>
 
           {/* Export Conversations */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="w-5 h-5" />
@@ -160,10 +160,10 @@ export default function ExportsPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Export Agents */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Archive className="w-5 h-5" />
@@ -211,7 +211,7 @@ export default function ExportsPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Export Information */}

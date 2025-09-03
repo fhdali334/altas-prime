@@ -1,7 +1,8 @@
+// Updated Dashboard Page with Vercel-specific fixes
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import ChatList from "@/components/chat/ChatList"
 import ChatWindow from "@/components/chat/ChatWindow"
@@ -44,6 +45,7 @@ export default function DashboardPage() {
 
   const isMobile = useIsMobile()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (isMobile) {
@@ -98,6 +100,63 @@ export default function DashboardPage() {
     }
   }
 
+  // Enhanced navigation function with multiple Vercel deployment fixes
+  const navigateToChat = useCallback(async (chatId: string) => {
+    if (!chatId || chatId.trim() === "") {
+      console.error("[v0] Chat ID is undefined, null, or empty")
+      toast.error("Invalid chat ID")
+      return false
+    }
+
+    try {
+      const cleanChatId = chatId.trim()
+      const targetUrl = `/dashboard/${cleanChatId}`
+      
+      console.log("[v0] Navigating to:", targetUrl)
+      console.log("[v0] Current pathname:", pathname)
+
+      // Vercel-specific fixes
+      // 1. Refresh router state before navigation
+      router.refresh()
+      
+      // 2. Add small delay to allow refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // 3. Use replace if we're already on dashboard to prevent issues
+      if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+        await router.replace(targetUrl)
+      } else {
+        await router.push(targetUrl)
+      }
+
+      // 4. Fallback: If navigation doesn't work, use window.location
+      // This is a last resort for production environments
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          if (window.location.pathname !== targetUrl) {
+            console.log("[v0] Fallback navigation using window.location")
+            window.location.href = window.location.origin + targetUrl
+          }
+        }, 1000)
+      }
+
+      return true
+    } catch (error) {
+      console.error("[v0] Navigation error:", error)
+      
+      // Production fallback - direct URL change
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+        const targetUrl = `/dashboard/${chatId.trim()}`
+        console.log("[v0] Production fallback navigation to:", targetUrl)
+        window.location.href = window.location.origin + targetUrl
+        return true
+      }
+      
+      toast.error("Failed to navigate to chat")
+      return false
+    }
+  }, [router, pathname])
+
   const handleCreateGeneralChat = async () => {
     if (isCreatingChat) return
 
@@ -123,10 +182,8 @@ export default function DashboardPage() {
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
 
-        // Navigate to the new chat immediately
-        const chatUrl = `/dashboard/${newChat.id}`
-        console.log("[v0] Navigating to new chat:", chatUrl)
-        router.push(chatUrl)
+        // Navigate to the new chat
+        await navigateToChat(newChat.id)
 
         // On mobile, close chat list when chat is selected
         if (isMobile) {
@@ -173,10 +230,8 @@ export default function DashboardPage() {
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
 
-        // Navigate to the new chat immediately
-        const chatUrl = `/dashboard/${newChat.id}`
-        console.log("[v0] Navigating to new agent chat:", chatUrl)
-        router.push(chatUrl)
+        // Navigate to the new chat
+        await navigateToChat(newChat.id)
 
         // On mobile, close chat list when chat is selected
         if (isMobile) {
@@ -200,7 +255,7 @@ export default function DashboardPage() {
       if (selectedChatId === chatId) {
         setSelectedChatId(null)
         // Navigate back to dashboard root when deleting selected chat
-        router.push('/dashboard')
+        await navigateToChat('') // This will go to /dashboard
       }
       toast.success("Chat deleted")
     } catch (error) {
@@ -252,30 +307,14 @@ export default function DashboardPage() {
     })
   }, [])
 
-  // FIXED: This function now properly navigates to the chat URL
-  const handleChatSelect = (chatId: string) => {
+  // FIXED: Enhanced chat selection with multiple fallbacks
+  const handleChatSelect = async (chatId: string) => {
     console.log("[v0] Dashboard selecting chat:", chatId)
-    if (!chatId || chatId.trim() === "") {
-      console.error("[v0] Chat ID is undefined, null, or empty")
-      toast.error("Invalid chat ID")
-      return
-    }
-
-    try {
-      const cleanChatId = chatId.trim()
-      const chatUrl = `/dashboard/${cleanChatId}`
-      console.log("[v0] Navigating to chat:", chatUrl)
-      
-      // Use router.push to navigate to the specific chat URL
-      router.push(chatUrl)
-      
-      // On mobile, close chat list when chat is selected
-      if (isMobile) {
-        setChatListCollapsed(true)
-      }
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      toast.error("Failed to navigate to chat")
+    
+    const success = await navigateToChat(chatId)
+    
+    if (success && isMobile) {
+      setChatListCollapsed(true)
     }
   }
 

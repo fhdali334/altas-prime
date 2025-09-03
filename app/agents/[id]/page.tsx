@@ -80,7 +80,7 @@ export default function AgentDetailsPage({ params }: { params: { id: string } })
     return (
       <div className="flex h-screen bg-gray-50">
         {/* <Sidebar /> */}
-        <div className="flex-1 ml-64 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function AgentDetailsPage({ params }: { params: { id: string } })
     return (
       <div className="flex h-screen bg-gray-50">
         {/* <Sidebar /> */}
-        <div className="flex-1 ml-64 p-6">
+        <div className="flex-1 p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-600 mb-4">{error || "Agent not found"}</p>
             <Button onClick={() => router.push("/agents")}>Back to Agents</Button>
@@ -104,7 +104,7 @@ export default function AgentDetailsPage({ params }: { params: { id: string } })
   return (
     <div className="flex h-screen bg-gray-50">
       {/* <Sidebar /> */}
-      <div className="flex-1 ml-64 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6">
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
           <div className="flex items-center space-x-4 mb-6">
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">

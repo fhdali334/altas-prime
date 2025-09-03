@@ -251,8 +251,9 @@ export default function DashboardPage() {
     }
 
     try {
-      console.log("[v0] Navigating to chat:", `/dashboard/${chatId}`)
-      window.location.href = `/dashboard/${chatId}`
+      const cleanChatId = chatId.trim()
+      console.log("[v0] Navigating to chat:", `/dashboard/${cleanChatId}`)
+      window.location.href = `/dashboard/${cleanChatId}`
     } catch (error) {
       console.error("[v0] Navigation error:", error)
       toast.error("Failed to navigate to chat")

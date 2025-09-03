@@ -233,12 +233,20 @@ export default function ChatPage() {
 
   const handleChatSelect = (selectedChatId: string) => {
     console.log("[v0] Chat page selecting chat:", selectedChatId)
-    if (!selectedChatId) {
-      console.error("[v0] Selected chat ID is undefined or null")
+    if (!selectedChatId || selectedChatId.trim() === "") {
+      console.error("[v0] Selected chat ID is undefined, null, or empty")
       toast.error("Invalid chat ID")
       return
     }
-    router.push(`/dashboard/${selectedChatId}`)
+
+    try {
+      const cleanChatId = selectedChatId.trim()
+      console.log("[v0] Navigating to chat:", `/dashboard/${cleanChatId}`)
+      window.location.href = `/dashboard/${cleanChatId}`
+    } catch (error) {
+      console.error("[v0] Navigation error:", error)
+      toast.error("Failed to navigate to chat")
+    }
   }
 
   const filteredChats = chats.filter((chat) => {

@@ -75,10 +75,19 @@ export default function ChatNavigation({ chatId, onRealTimeUpdate }: ChatNavigat
     }
   }
 
+  const handleBackNavigation = () => {
+    try {
+      window.location.href = "/dashboard"
+    } catch (error) {
+      console.error("[v0] Navigation error:", error)
+      toast.error("Failed to navigate back")
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
-        <Button variant="outline" size="sm" onClick={() => router.push("/dashboard")}>
+        <Button variant="outline" size="sm" onClick={handleBackNavigation}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
@@ -90,7 +99,7 @@ export default function ChatNavigation({ chatId, onRealTimeUpdate }: ChatNavigat
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border-b border-gray-200 gap-3">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.push("/dashboard")}>
+        <Button variant="outline" size="sm" onClick={handleBackNavigation}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>

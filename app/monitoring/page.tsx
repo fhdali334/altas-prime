@@ -119,10 +119,9 @@ export default function MonitoringPage() {
 
   useEffect(() => {
     fetchSystemData()
-
     // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchSystemData, 30000)
-    return () => clearInterval(interval)
+    // const interval = setInterval(fetchSystemData, 30000)
+    // return () => clearInterval(interval)
   }, [])
 
   const fetchSystemData = async () => {

@@ -32,14 +32,15 @@ const navigation = [
   { name: "Agents", href: "/agents", icon: Bot },
   { name: "Files", href: "/files", icon: FileText },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Status", href: "/status", icon: AlertTriangle },
   { name: "Logs", href: "/logs", icon: Activity },
-  { name: "Monitoring", href: "/monitoring", icon: Monitor },
   { name: "Exports", href: "/exports", icon: Download },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
-const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Shield }]
+const adminNavigation = [
+  { name: "Admin Panel", href: "/admin", icon: Shield },
+  { name: "Monitoring", href: "/monitoring", icon: Monitor },
+]
 
 export default function Sidebar({ isCollapsed = false, onToggle, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
@@ -52,7 +53,6 @@ export default function Sidebar({ isCollapsed = false, onToggle, isMobile = fals
       router.push("/auth")
     } catch (error) {
       console.error("Logout error:", error)
-      // Even if logout fails, redirect to auth
       router.push("/auth")
     }
   }

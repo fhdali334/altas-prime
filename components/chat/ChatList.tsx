@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MoreVertical, Edit2, Trash2, MessageSquare, Bot, Check, X } from 'lucide-react'
+import { MoreVertical, Edit2, Trash2, MessageSquare, Bot, Check, X } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatDistanceToNow } from "date-fns"
 
@@ -30,13 +29,7 @@ interface ChatListProps {
   onUpdateTitle: (chatId: string, title: string) => void
 }
 
-export default function ChatList({
-  chats,
-  selectedChatId,
-  onSelectChat,
-  onDeleteChat,
-  onUpdateTitle,
-}: ChatListProps) {
+export default function ChatList({ chats, selectedChatId, onSelectChat, onDeleteChat, onUpdateTitle }: ChatListProps) {
   const [editingChatId, setEditingChatId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [isMobile, setIsMobile] = useState(false)
@@ -45,10 +38,10 @@ export default function ChatList({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
-    
+
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   const handleEditStart = (chat: Chat) => {
@@ -82,17 +75,17 @@ export default function ChatList({
 
   return (
     <ScrollArea className="flex-1">
-      <div className="p-2 sm:p-4 space-y-2 ">
+      <div className="p-2 sm:p-4 space-y-2">
         {chats.map((chat) => (
           <div
             key={chat.id}
-            className={`group relative  p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 ${
+            className={`group relative p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 ${
               selectedChatId === chat.id ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
             }`}
             onClick={() => onSelectChat(chat.id)}
           >
             <div className="flex items-start justify-between">
-              <div className="flex-1 max-w-64">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   {chat.agent_id ? (
                     <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
@@ -124,9 +117,7 @@ export default function ChatList({
                   )}
                 </div>
 
-                {chat.agent_name && (
-                  <p className="text-xs text-blue-600 mb-1">with {chat.agent_name}</p>
-                )}
+                {chat.agent_name && <p className="text-xs text-blue-600 mb-1">with {chat.agent_name}</p>}
 
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>{chat.message_count} messages</span>
@@ -159,10 +150,7 @@ export default function ChatList({
                     <Edit2 className="w-3 h-3 mr-2" />
                     Rename
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onDeleteChat(chat.id)}
-                    className="text-red-600 text-xs"
-                  >
+                  <DropdownMenuItem onClick={() => onDeleteChat(chat.id)} className="text-red-600 text-xs">
                     <Trash2 className="w-3 h-3 mr-2" />
                     Delete
                   </DropdownMenuItem>

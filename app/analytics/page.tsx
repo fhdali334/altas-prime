@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
   }
 
   const handleChatClick = (chatId: string) => {
-    window.location.href = `/dashboard/${chatId}`
+    router.push(`/dashboard/${chatId}`)
   }
 
   const handleViewChatAnalytics = async (chatId: string) => {
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium">Monthly Budget</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>

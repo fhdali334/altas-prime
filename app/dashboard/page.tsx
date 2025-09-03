@@ -250,7 +250,7 @@ export default function DashboardPage() {
   }, [])
 
   const handleChatSelect = (chatId: string) => {
-    window.location.href = `/dashboard/${chatId}`
+    router.push(`/dashboard/${chatId}`)
   }
 
   const filteredChats = chats.filter((chat) => {

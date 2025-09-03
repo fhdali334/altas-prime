@@ -84,10 +84,12 @@ export default function ChatList({ chats, selectedChatId, onSelectChat, onDelete
             }`}
             onClick={() => {
               console.log("[v0] ChatList selecting chat:", chat.id)
-              if (chat.id) {
-                onSelectChat(chat.id)
+              if (chat.id && typeof chat.id === "string" && chat.id.trim() !== "") {
+                const cleanChatId = chat.id.trim()
+                console.log("[v0] Clean chat ID from ChatList:", cleanChatId)
+                onSelectChat(cleanChatId)
               } else {
-                console.error("[v0] Chat ID is missing:", chat)
+                console.error("[v0] Chat ID is missing or invalid:", chat)
               }
             }}
           >

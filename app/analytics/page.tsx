@@ -23,7 +23,7 @@ import {
   BarChart,
   Bar,
 } from "recharts"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
@@ -98,8 +98,12 @@ export default function AnalyticsPage() {
     }
 
     try {
-      // Use router.push for client-side navigation
-      router.push(`/dashboard/${chatId}`)
+      const cleanChatId = chatId.trim()
+      console.log("[v0] Clean chat ID:", cleanChatId)
+      console.log("[v0] Navigating to:", `/dashboard/${cleanChatId}`)
+
+      // Use replace instead of push to prevent back button issues
+      router.push(`/dashboard/${cleanChatId}`)
     } catch (error) {
       console.error("[v0] Navigation error:", error)
       toast.error("Failed to navigate to chat")
@@ -394,11 +398,11 @@ export default function AnalyticsPage() {
                         e.preventDefault()
                         e.stopPropagation()
                         console.log("[v0] Analytics chat clicked:", chat.chat_id, chat.title)
-                        if (chat.chat_id && chat.chat_id.trim() !== "") {
-                          handleChatClick(chat.chat_id)
+                        if (chat.chat_id && typeof chat.chat_id === "string" && chat.chat_id.trim() !== "") {
+                          handleChatClick(chat.chat_id.trim())
                         } else {
                           console.error("[v0] Invalid chat_id in analytics:", chat)
-                          toast.error("Invalid chat data")
+                          toast.error("Invalid chat data - missing or invalid chat ID")
                         }
                       }}
                     >

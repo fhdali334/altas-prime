@@ -11,6 +11,12 @@ import {
   ChevronRight,
   User,
   X,
+  Shield,
+  Menu,
+  Activity,
+  Monitor,
+  AlertTriangle,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
@@ -18,6 +24,7 @@ import { useAuth } from "@/context/authContext"
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
+  isMobile?: boolean
 }
 
 const navigation = [
@@ -25,12 +32,16 @@ const navigation = [
   { name: "Agents", href: "/agents", icon: Bot },
   { name: "Files", href: "/files", icon: FileText },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Status", href: "/status", icon: AlertTriangle },
+  { name: "Logs", href: "/logs", icon: Activity },
+  { name: "Monitoring", href: "/monitoring", icon: Monitor },
+  { name: "Exports", href: "/exports", icon: Download },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
-const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Settings }]
+const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Shield }]
 
-export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
+export default function Sidebar({ isCollapsed = false, onToggle, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
@@ -47,8 +58,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   }
 
   const handleNavigation = (href: string) => {
-    // Close sidebar on mobile after navigation
-    if (typeof window !== "undefined" && window.innerWidth < 1024 && onToggle) {
+    if (isMobile && onToggle) {
       onToggle()
     }
     router.push(href)
@@ -58,15 +68,30 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
   return (
     <>
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="fixed top-4 left-4 z-50 bg-white shadow-md border border-gray-200 lg:hidden"
+        >
+          {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+        </Button>
+      )}
+
       {/* Mobile Overlay */}
-      {!isCollapsed && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={onToggle} />}
+      {!isCollapsed && isMobile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={onToggle} />
+      )}
 
       {/* Sidebar */}
       <div
         className={`
         fixed top-0 left-0 z-30 h-full bg-white border-r border-gray-200 transition-all duration-300
         ${isCollapsed ? "w-16" : "w-64"}
-        ${isCollapsed ? "-translate-x-full lg:translate-x-0" : "translate-x-0"}
+        ${isCollapsed && isMobile ? "-translate-x-full" : "translate-x-0"}
+        ${!isCollapsed && isMobile ? "translate-x-0" : ""}
+        lg:translate-x-0
       `}
       >
         <div className="flex flex-col h-full">
@@ -81,20 +106,18 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   <span className="font-semibold text-gray-900">Atlas Prime</span>
                 </div>
               )}
-              <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5 lg:flex hidden">
-                {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-              </Button>
-              {/* Mobile close button */}
-              <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5 lg:hidden">
-                <X className="w-4 h-4" />
-              </Button>
+              {!isMobile && (
+                <Button variant="ghost" size="sm" onClick={onToggle} className="p-1.5">
+                  {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </Button>
+              )}
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {allNavigation.map((item) => {
-              const isActive = pathname === item.href
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
                 <button
                   key={item.name}
@@ -123,7 +146,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
-                    {user.role === "admin" && <p className="text-xs text-blue-600 font-medium">Administrator</p>}
+                    {user.role === "admin" && (
+                      <div className="flex items-center gap-1">
+                        <Shield className="w-3 h-3 text-blue-600" />
+                        <p className="text-xs text-blue-600 font-medium">Administrator</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

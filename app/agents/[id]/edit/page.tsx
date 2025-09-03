@@ -135,7 +135,7 @@ export default function EditAgentPage({ params }: { params: { id: string } }) {
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar />
+        {/* <Sidebar /> */}
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -145,7 +145,7 @@ export default function EditAgentPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+      {/* <Sidebar /> */}
       <div className="flex-1 ml-64 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">

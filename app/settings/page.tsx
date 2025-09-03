@@ -94,7 +94,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
         {isMobile && (
           <div className="fixed top-4 left-4 z-40">
             <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
@@ -104,7 +104,7 @@ export default function SettingsPage() {
         )}
         <div
           className={`flex-1 flex items-center justify-center transition-all duration-300 ${
-            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0"
           } ${isMobile ? "pt-16" : ""}`}
         >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -116,7 +116,7 @@ export default function SettingsPage() {
   if (!settings) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
         {isMobile && (
           <div className="fixed top-4 left-4 z-40">
             <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
@@ -126,7 +126,7 @@ export default function SettingsPage() {
         )}
         <div
           className={`flex-1 p-4 sm:p-6 transition-all duration-300 ${
-            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+            sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 "
           } ${isMobile ? "pt-16" : ""}`}
         >
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
@@ -139,19 +139,19 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
 
-      {isMobile && (
+      {/* {isMobile && (
         <div className="fixed top-4 left-4 z-40">
           <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
             <Menu className="w-4 h-4" />
           </Button>
         </div>
-      )}
+      )} */}
 
       <div
         className={`flex-1 overflow-y-auto p-4 sm:p-6 transition-all duration-300 ${
-          sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 lg:ml-64"
+          sidebarCollapsed ? "ml-0 lg:ml-16" : "ml-0 "
         } ${isMobile ? "pt-16" : ""}`}
       >
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Settings</h1>
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                 <Label htmlFor="model" className="text-sm sm:text-base">
                   Model Name
                 </Label>
-                <select
+                {/* <select
                   id="model"
                   value={settings.model_settings.model_name}
                   onChange={(e) =>
@@ -183,12 +183,18 @@ export default function SettingsPage() {
                     })
                   }
                   className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                >
-                  <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  <option value="claude-3-opus">Claude 3 Opus</option>
-                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                </select>
+                > */}
+                  <Input  id="model"
+                  value={settings.model_settings.model_name}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      model_settings: { ...settings.model_settings, model_name: e.target.value },
+                    })
+                  }
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                />
+                {/* </select> */}
               </div>
 
               <div>

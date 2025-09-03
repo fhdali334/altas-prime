@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import ChatList from "@/components/chat/ChatList"
 import ChatWindow from "@/components/chat/ChatWindow"
 import AgentSelector from "@/components/chat/AgentSelector"
 import { chatAPI, agentAPI } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Bot, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { MessageSquare, Bot, ChevronLeft, ChevronRight, X, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -32,18 +32,19 @@ interface Agent {
   instructions?: string
 }
 
-export default function DashboardPage() {
+export default function ChatPage() {
+  const params = useParams()
+  const router = useRouter()
+  const chatId = params.chatID as string
+
   const [chats, setChats] = useState<Chat[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "general" | "agents">("all")
   const [chatListCollapsed, setChatListCollapsed] = useState(false)
   const [showAgentSelector, setShowAgentSelector] = useState(false)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
-
   const isMobile = useIsMobile()
-  const router = useRouter()
 
   useEffect(() => {
     if (isMobile) {
@@ -65,7 +66,6 @@ export default function DashboardPage() {
       console.log("[v0] Chats response:", chatsResponse)
       console.log("[v0] Agents response:", agentsResponse)
 
-      // Ensure we have valid data arrays
       const chatsData = Array.isArray(chatsResponse?.data) ? chatsResponse.data : []
       const agentsData = Array.isArray(agentsResponse?.data) ? agentsResponse.data : []
 
@@ -90,7 +90,6 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("[v0] Error fetching initial data:", error)
       toast.error("Failed to load data")
-      // Set empty arrays on error to prevent undefined issues
       setChats([])
       setAgents([])
     } finally {
@@ -119,17 +118,13 @@ export default function DashboardPage() {
           status: response.data.status || "active",
         }
 
-        setSelectedChatId(newChat.id)
-        // Add to chats list immediately
+        router.push(`/dashboard/${newChat.id}`)
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
 
-        // On mobile, close chat list when chat is selected
         if (isMobile) {
           setChatListCollapsed(true)
         }
-      } else {
-        throw new Error("Invalid response from server")
       }
     } catch (error) {
       console.error("Error creating general chat:", error)
@@ -164,18 +159,14 @@ export default function DashboardPage() {
           status: response.data.status || "active",
         }
 
-        setSelectedChatId(newChat.id)
+        router.push(`/dashboard/${newChat.id}`)
         setShowAgentSelector(false)
-        // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
 
-        // On mobile, close chat list when chat is selected
         if (isMobile) {
           setChatListCollapsed(true)
         }
-      } else {
-        throw new Error("Invalid response from server")
       }
     } catch (error) {
       console.error("Error creating agent chat:", error)
@@ -189,8 +180,8 @@ export default function DashboardPage() {
     try {
       await chatAPI.delete(chatId)
       setChats((prev) => prev.filter((chat) => chat.id !== chatId))
-      if (selectedChatId === chatId) {
-        setSelectedChatId(null)
+      if (chatId === params.chatID) {
+        router.push("/dashboard")
       }
       toast.success("Chat deleted")
     } catch (error) {
@@ -210,9 +201,7 @@ export default function DashboardPage() {
     }
   }
 
-  // Use useCallback to prevent unnecessary re-renders
   const handleChatUpdate = useCallback((updatedChat: any) => {
-    // Validate updatedChat object
     if (!updatedChat || !updatedChat.id) {
       console.warn("Invalid chat update data:", updatedChat)
       return
@@ -242,8 +231,8 @@ export default function DashboardPage() {
     })
   }, [])
 
-  const handleChatSelect = (chatId: string) => {
-    router.push(`/dashboard/${chatId}`)
+  const handleChatSelect = (selectedChatId: string) => {
+    router.push(`/dashboard/${selectedChatId}`)
   }
 
   const filteredChats = chats.filter((chat) => {
@@ -252,12 +241,12 @@ export default function DashboardPage() {
     return true
   })
 
-  const selectedChat = chats.find((chat) => chat.id === selectedChatId)
+  const selectedChat = chats.find((chat) => chat.id === chatId)
 
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex h-screen my-auto bg-gray-50">
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -273,57 +262,44 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="flex h-screen bg-gray-50">
         <div className="flex-1 relative">
-          {/* Chat List Toggle Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute top-4 right-4 z-10 bg-white shadow-sm"
-            onClick={() => setChatListCollapsed(!chatListCollapsed)}
-          >
-            {chatListCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </Button>
+          {/* Back button and Chat List Toggle */}
+          <div className="absolute top-4 left-4 right-4 z-10 flex justify-between">
+            {/* <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/dashboard")}
+              className="bg-white shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button> */}
+            {/* <Button
+              variant="outline"
+              size="sm"
+              className="bg-white shadow-sm"
+              onClick={() => setChatListCollapsed(!chatListCollapsed)}
+            >
+              {chatListCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button> */}
+          </div>
 
           {selectedChat ? (
             <ChatWindow chat={selectedChat} onChatUpdate={handleChatUpdate} />
           ) : (
             <div className="flex items-center justify-center h-full bg-gray-50 p-4">
               <div className="text-center max-w-md mx-auto">
-                {isCreatingChat ? (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Creating chat...</p>
-                  </div>
-                ) : (
-                  <>
-                    <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Atlas Prime</h3>
-                    <p className="text-gray-500 mb-6 text-sm sm:text-base">
-                      Start a conversation with our AI or choose from your existing chats
-                    </p>
-                    <div className="flex flex-col gap-3 justify-center">
-                      <Button
-                        onClick={handleCreateGeneralChat}
-                        variant="outline"
-                        className="flex items-center gap-2 bg-transparent w-full sm:w-auto"
-                        disabled={isCreatingChat}
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        {isCreatingChat ? "Creating..." : "New General Chat"}
-                      </Button>
-                      <Button
-                        onClick={() => setShowAgentSelector(true)}
-                        className="flex items-center gap-2 w-full sm:w-auto"
-                        disabled={agents.length === 0 || isCreatingChat}
-                      >
-                        <Bot className="w-4 h-4" />
-                        Chat with Agent
-                      </Button>
-                    </div>
-                    {agents.length === 0 && (
-                      <p className="text-sm text-gray-400 mt-2">No agents available. Create an agent first.</p>
-                    )}
-                  </>
-                )}
+                <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Chat Not Found</h3>
+                <p className="text-gray-500 mb-6">The requested chat could not be found or may be loading.</p>
+                <div className="flex flex-col gap-2">
+                  <Button onClick={() => router.push("/dashboard")} variant="outline">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Dashboard
+                  </Button>
+                  <Button onClick={fetchInitialData} variant="ghost" size="sm">
+                    Retry Loading
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -336,19 +312,15 @@ export default function DashboardPage() {
         >
           {!chatListCollapsed && (
             <>
-              {/* Mobile Overlay */}
               {isMobile && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={() => setChatListCollapsed(true)} />
               )}
 
-              {/* Chat List Content */}
               <div className="relative z-30 bg-white h-full flex flex-col">
-                {/* Header */}
                 <div className="p-3 sm:p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Chats</h2>
                     <div className="flex gap-1 sm:gap-2">
-                      {/* Mobile close button */}
                       {isMobile && (
                         <Button variant="ghost" size="sm" onClick={() => setChatListCollapsed(true)} className="p-1.5">
                           <X className="w-4 h-4" />
@@ -376,7 +348,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Tabs */}
                   <div className="flex space-x-1 overflow-x-auto">
                     <button
                       onClick={() => setActiveTab("all")}
@@ -405,10 +376,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Chat List */}
                 <ChatList
                   chats={filteredChats}
-                  selectedChatId={selectedChatId}
+                  selectedChatId={chatId}
                   onSelectChat={handleChatSelect}
                   onDeleteChat={handleDeleteChat}
                   onUpdateTitle={handleUpdateChatTitle}
@@ -419,7 +389,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Agent Selector Modal */}
       {showAgentSelector && (
         <AgentSelector
           agents={agents}

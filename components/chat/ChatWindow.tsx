@@ -8,6 +8,7 @@ import BotMessage from "@/components/messages/BotMessage"
 import TypingIndicator from "@/components/messages/TypingIndicator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Message {
   id: string
@@ -39,18 +40,8 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const isMobile = useIsMobile()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
 
   useEffect(() => {
     if (chat?.id) {
@@ -73,7 +64,10 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
 
     try {
       setIsLoading(true)
+      console.log("[v0] Fetching messages for chat:", chat.id)
+
       const response = await chatAPI.getById(chat.id, { limit: 100 })
+      console.log("[v0] Messages response:", response)
 
       if (response?.data?.messages && Array.isArray(response.data.messages)) {
         const validMessages = response.data.messages
@@ -87,12 +81,14 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
           }))
           .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
+        console.log("[v0] Valid messages:", validMessages)
         setMessages(validMessages)
       } else {
+        console.log("[v0] No messages found or invalid response structure")
         setMessages([])
       }
     } catch (error) {
-      console.error("Error fetching messages:", error)
+      console.error("[v0] Error fetching messages:", error)
       toast.error("Failed to load messages")
       setMessages([])
     } finally {
@@ -117,6 +113,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
     setIsTyping(true)
 
     try {
+      console.log("[v0] Sending message to chat:", chat.id)
       const response = await chatAPI.sendMessage(chat.id, {
         content: content.trim(),
         file_ids: fileIds,
@@ -124,7 +121,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
         max_file_tokens: 4000,
       })
 
-      console.log("API Response:", response.data) // Debug log
+      console.log("[v0] Send message response:", response.data)
 
       if (response?.data) {
         // Update the temporary user message with real ID if provided
@@ -136,7 +133,11 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
 
         // Add bot response - check multiple possible response fields
         const botContent =
-          response.data.content || response.data.response || response.data.message || response.data.reply
+          response.data.content ||
+          response.data.response ||
+          response.data.message ||
+          response.data.reply ||
+          response.data.ai_response
 
         if (botContent) {
           const botMessage: Message = {
@@ -152,7 +153,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
             setIsTyping(false)
           }, 500)
         } else {
-          console.warn("No bot response content found in:", response.data)
+          console.warn("[v0] No bot response content found in:", response.data)
           setIsTyping(false)
           toast.error("No response received from AI")
         }
@@ -173,7 +174,7 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
         throw new Error("Invalid response from server")
       }
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("[v0] Error sending message:", error)
       setIsTyping(false)
       toast.error("Failed to send message")
       // Remove temp message on error
@@ -183,10 +184,10 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center  ">
+      <div className="flex-1 flex items-center justify-center h-screen my-auto">
         <div className="text-center my-auto">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600">Loading messages...</p>
+          <p className="mt-2  text-sm text-gray-600">Loading messages...</p>
         </div>
       </div>
     )
@@ -195,28 +196,24 @@ export default function ChatWindow({ chat, onChatUpdate }: ChatWindowProps) {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Chat Header */}
-      <div className="border-b border-gray-200 bg-white p-3 sm:p-4 sm:pl-4 sm:pr-4">
+      <div className="border-b border-gray-200 bg-white p-3 sm:p-4">
         <div className="flex items-center justify-between">
-          <div className="min-w-0 flex-1">
-  <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-    {chat.title.length > 10 ? chat.title.slice(0, 10) + "..." : chat.title}
-  </h2>
-  {chat.agent_name && (
-    <p className="text-xs sm:text-sm text-blue-600">
-      with {chat.agent_name}
-    </p>
-  )}
-</div>
+          <div className="min-w-0 flex-1 max-sm:ml-12">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+              {isMobile && chat.title.length > 20 ? chat.title.slice(0, 20) + "..." : chat.title}
+            </h2>
+            {chat.agent_name && <p className="text-xs sm:text-sm text-blue-600">with {chat.agent_name}</p>}
+          </div>
 
-          <div className="text-right text-xs text-gray-500 ml-4 flex-shrink-0 sm:mr-14 mr-10">
-            <div className=" ">{chat.message_count} messages</div>
+          <div className="text-right text-xs text-gray-500 ml-4 flex-shrink-0 mr-10 sm:mr-14">
+            <div>{chat.message_count} messages</div>
             {chat.total_tokens > 0 && !isMobile && <div>{chat.total_tokens.toLocaleString()} tokens</div>}
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-2 sm:p-4 px-4 sm:px-4">
+      <ScrollArea className="flex-1 p-2 sm:p-4">
         <div className="space-y-3 sm:space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">

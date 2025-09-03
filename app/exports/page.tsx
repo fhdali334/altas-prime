@@ -80,8 +80,8 @@ export default function ExportsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 ml-64 overflow-y-auto p-6">
+      {/* <Sidebar /> */}
+      <div className="flex-1 overflow-y-auto p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Export Data</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">

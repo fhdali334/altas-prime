@@ -68,7 +68,7 @@ export default function AgentsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
         
         {/* Mobile menu button */}
         <div className="lg:hidden fixed top-4 left-4 z-30">
@@ -77,7 +77,7 @@ export default function AgentsPage() {
           </Button>
         </div>
 
-        <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"} flex items-center justify-center`}>
+        <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 "} flex items-center justify-center`}>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
@@ -86,16 +86,16 @@ export default function AgentsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
       
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-30">
+      {/* <div className="lg:hidden fixed top-4 left-4 z-30">
         <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
           <Menu className="w-4 h-4" />
         </Button>
-      </div>
+      </div> */}
 
-      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"} overflow-y-auto`}>
+      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "ml-0 "} overflow-y-auto`}>
         <div className="p-4 sm:p-6">
           {/* Header */}
           <div className="flex justify-between items-start sm:items-center mb-6 gap-4 max-lg:ml-12">

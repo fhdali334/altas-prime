@@ -50,9 +50,19 @@ export default function StatusPage() {
     try {
       setLogsLoading(true)
       const response = await statusAPI.getLogs()
-      setLogs(response.data)
+      console.log("[v0] Logs response:", response.data)
+
+      if (Array.isArray(response.data)) {
+        setLogs(response.data)
+      } else if (response.data && Array.isArray(response.data.logs)) {
+        setLogs(response.data.logs)
+      } else {
+        console.warn("[v0] Logs data is not an array:", response.data)
+        setLogs([])
+      }
     } catch (err) {
       console.error("Error fetching logs:", err)
+      setLogs([])
     } finally {
       setLogsLoading(false)
     }
@@ -78,7 +88,6 @@ export default function StatusPage() {
     fetchStatus()
     fetchLogs()
 
-    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       fetchStatus()
       fetchLogs()
@@ -115,8 +124,8 @@ export default function StatusPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 ml-64 overflow-y-auto p-6">
+      {/* <Sidebar /> */}
+      <div className="flex-1  overflow-y-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">System Status & Logs</h1>
           <div className="flex gap-2">
@@ -148,7 +157,6 @@ export default function StatusPage() {
           </div>
         ) : (
           <>
-            {/* System Status Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -197,7 +205,6 @@ export default function StatusPage() {
               </Card>
             </div>
 
-            {/* Activity Logs */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -210,7 +217,7 @@ export default function StatusPage() {
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
-                ) : logs.length === 0 ? (
+                ) : !Array.isArray(logs) || logs.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">No logs available</p>
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">

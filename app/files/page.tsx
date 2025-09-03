@@ -199,23 +199,23 @@ export default function FilesPage() {
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-gray-50">
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {/* <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
 
         {/* Mobile menu button */}
-        <div className="lg:hidden fixed top-4 left-4 z-30">
+        {/* <div className="lg:hidden fixed top-4 left-4 z-30">
           <Button variant="outline" size="sm" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
             <Menu className="w-4 h-4" />
           </Button>
-        </div>
+        </div> */}
 
         <div
           className={`flex-1 overflow-hidden transition-all duration-300 ${
-            sidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-64"
+            sidebarCollapsed ? "lg:ml-16" : "ml-0 "
           }`}
         >
           <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 p-4 sm:p-6">
+            <div className=" p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="max-lg:ml-12">
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Files</h1>

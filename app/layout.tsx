@@ -5,6 +5,10 @@ import "./globals.css"
 import { AuthProvider } from "@/context/authContext"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "sonner"
+import AppLayout from "@/components/layout/AppLayout"
+import ErrorBoundary from "@/components/ErrorBoundary"
+import NetworkErrorHandler from "@/components/NetworkErrorHandler"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,12 +25,27 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            <AuthProvider>
+              <div className="relative">
+                <NetworkErrorHandler className="fixed top-0 left-0 right-0 z-50" />
+                <AppLayout>{children}</AppLayout>
+              </div>
+              <Toaster />
+              <SonnerToaster
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: "white",
+                    border: "1px solid #e5e7eb",
+                    color: "#374151",
+                  },
+                }}
+              />
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

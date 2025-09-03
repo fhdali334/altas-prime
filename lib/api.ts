@@ -237,3 +237,45 @@ export const adminAPI = {
   // System Statistics (Get comprehensive system statistics)
   getSystemStatistics: () => api.get("/admin/system/statistics"),
 }
+
+// Comprehensive logs and monitoring API endpoints
+export const logsAPI = {
+  // Get User Activity Logs (Protected)
+  getLogs: (params?: {
+    action?: string
+    limit?: number
+    start_date?: string
+    end_date?: string
+  }) => api.get("/logs", { params }),
+
+  // Get Filtered Logs by Action
+  getLogsByAction: (action: string, params?: { limit?: number }) => api.get("/logs", { params: { action, ...params } }),
+
+  // Get Logs by Date Filter
+  getLogsByDate: (params: {
+    start_date: string
+    end_date: string
+    limit?: number
+  }) => api.get("/logs", { params }),
+
+  // Get All Available Actions for Filtering
+  getActions: () => api.get("/logs/actions"),
+
+  // Get Logs Summary
+  getSummary: () => api.get("/logs/summary"),
+}
+
+export const monitoringAPI = {
+  // Get System Status (Public)
+  getStatus: () => api.get("/status"),
+
+  // Get System Health and Performance Metrics
+  getSystemHealth: () => api.get("/admin/system/statistics"),
+
+  // Export Logs (if available)
+  exportLogs: (params?: {
+    format?: string
+    start_date?: string
+    end_date?: string
+  }) => api.get("/logs/export", { params, responseType: "blob" }),
+}

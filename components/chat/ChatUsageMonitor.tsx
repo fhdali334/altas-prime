@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, TrendingUp, Zap, Eye } from "lucide-react"
 import { chatAPI } from "@/lib/api"
-import { toast } from "sonner" // Assuming toast is imported for error handling
+import { useRouter } from "next/navigation"
 
 interface ChatUsageMonitorProps {
   chatId: string
@@ -18,6 +18,7 @@ export default function ChatUsageMonitor({ chatId, className = "" }: ChatUsageMo
   const [usageData, setUsageData] = useState<any>(null)
   const [chartData, setChartData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetchUsageData()
@@ -40,12 +41,7 @@ export default function ChatUsageMonitor({ chatId, className = "" }: ChatUsageMo
   }
 
   const handleViewAnalytics = () => {
-    try {
-      window.location.href = `/analytics?chat=${chatId}`
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      toast.error("Failed to navigate to analytics")
-    }
+    router.push(`/analytics?chat=${chatId}`)
   }
 
   if (isLoading) {

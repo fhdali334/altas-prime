@@ -23,7 +23,7 @@ import {
   BarChart,
   Bar,
 } from "recharts"
-import { toast } from "sonner"
+import { toast } from "@/ui/use-toast"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
@@ -90,23 +90,13 @@ export default function AnalyticsPage() {
   }
 
   const handleChatClick = (chatId: string) => {
-    console.log("[v0] Analytics navigating to chat:", chatId)
-    if (!chatId || chatId.trim() === "") {
-      console.error("[v0] Chat ID is undefined, null, or empty:", chatId)
-      toast.error("Invalid chat ID")
+    console.log("[v0] Navigating to chat:", chatId)
+    if (!chatId) {
+      console.error("[v0] Chat ID is undefined or null")
+    //   toast.error("Invalid chat ID")
       return
     }
-
-    try {
-      const cleanChatId = chatId.trim()
-      console.log("[v0] Clean chat ID:", cleanChatId)
-      console.log("[v0] Navigating to:", `/dashboard/${cleanChatId}`)
-
-      window.location.href = `/dashboard/${cleanChatId}`
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      toast.error("Failed to navigate to chat")
-    }
+    router.push(`/dashboard/${chatId}`)
   }
 
   const handleViewChatAnalytics = async (chatId: string) => {
@@ -396,13 +386,8 @@ export default function AnalyticsPage() {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        console.log("[v0] Analytics chat clicked:", chat.chat_id, chat.title)
-                        if (chat.chat_id && typeof chat.chat_id === "string" && chat.chat_id.trim() !== "") {
-                          handleChatClick(chat.chat_id.trim())
-                        } else {
-                          console.error("[v0] Invalid chat_id in analytics:", chat)
-                          toast.error("Invalid chat data - missing or invalid chat ID")
-                        }
+                        console.log("[v0] Chat clicked:", chat.chat_id, chat.title)
+                        handleChatClick(chat.chat_id)
                       }}
                     >
                       <h4 className="font-medium text-sm sm:text-base hover:text-blue-600 transition-colors">

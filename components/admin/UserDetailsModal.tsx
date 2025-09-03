@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -72,7 +71,6 @@ interface UserDetails {
 export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetailsModalProps) {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     if (userId && isOpen) {
@@ -96,22 +94,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
   }
 
   const handleChatClick = (chatId: string) => {
-    console.log("[v0] Admin modal navigating to chat:", chatId)
-    if (!chatId || chatId.trim() === "") {
-      console.error("[v0] Chat ID is undefined, null, or empty in admin modal")
-      toast.error("Invalid chat ID")
-      return
-    }
-
-    try {
-      const cleanChatId = chatId.trim()
-      console.log("[v0] Navigating to chat:", `/dashboard/${cleanChatId}`)
-      window.location.href = `/dashboard/${cleanChatId}`
-      onClose() // Close modal after navigation
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      toast.error("Failed to navigate to chat")
-    }
+    window.open(`/dashboard/${chatId}`, "_blank")
   }
 
   if (!isOpen) return null

@@ -10,7 +10,6 @@ import { chatAPI, agentAPI } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Bot, ChevronLeft, ChevronRight, X, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
-import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Chat {
   id: string
@@ -38,101 +37,42 @@ export default function ChatPage() {
   const chatId = params.chatID as string
 
   const [chats, setChats] = useState<Chat[]>([])
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [agents, setAgents] = useState<Agent[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isChatLoading, setIsChatLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "general" | "agents">("all")
   const [chatListCollapsed, setChatListCollapsed] = useState(false)
   const [showAgentSelector, setShowAgentSelector] = useState(false)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
-  const isMobile = useIsMobile()
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    if (isMobile) {
-      setChatListCollapsed(true)
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      if (mobile) {
+        setChatListCollapsed(true)
+      }
     }
-  }, [isMobile])
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     fetchInitialData()
   }, [])
 
-  useEffect(() => {
-    if (chatId) {
-      fetchSpecificChat(chatId)
-    }
-  }, [chatId])
-
-  const fetchSpecificChat = async (chatId: string) => {
-    try {
-      setIsChatLoading(true)
-      console.log("[v0] Fetching specific chat:", chatId)
-
-      const response = await chatAPI.getById(chatId)
-      console.log("[v0] Chat response:", response)
-
-      if (response?.data) {
-        const chatData = {
-          id: response.data.id || chatId,
-          title: response.data.title || "Untitled Chat",
-          agent_id: response.data.agent_id,
-          agent_name: response.data.agent_name,
-          created_at: response.data.created_at || new Date().toISOString(),
-          last_message_at: response.data.last_message_at || new Date().toISOString(),
-          message_count: response.data.message_count || 0,
-          total_tokens: response.data.total_tokens || 0,
-          total_cost: response.data.total_cost || 0,
-          status: response.data.status || "active",
-        }
-
-        setSelectedChat(chatData)
-
-        // Also update the chats list if this chat isn't already there
-        setChats((prev) => {
-          const existingIndex = prev.findIndex((chat) => chat.id === chatId)
-          if (existingIndex >= 0) {
-            const updated = [...prev]
-            updated[existingIndex] = chatData
-            return updated
-          } else {
-            return [chatData, ...prev]
-          }
-        })
-      }
-    } catch (error:any) {
-      console.error("[v0] Error fetching specific chat:", error)
-
-      // Check if it's a 403/404 error and redirect to dashboard
-      if (error.response?.status === 403 || error.response?.status === 404) {
-        console.log("[v0] Chat not found or access denied, redirecting to dashboard")
-        toast.error("Chat not found or access denied")
-        window.location.href = "/dashboard"
-        return
-      }
-
-      toast.error("Failed to load chat")
-      setSelectedChat(null)
-    } finally {
-      setIsChatLoading(false)
-    }
-  }
-
   const fetchInitialData = async () => {
     try {
       setIsLoading(true)
-      console.log("[v0] Fetching initial data for dashboard...")
-
       const [chatsResponse, agentsResponse] = await Promise.all([chatAPI.getAll({ limit: 50 }), agentAPI.getAll()])
-
-      console.log("[v0] Chats response:", chatsResponse)
-      console.log("[v0] Agents response:", agentsResponse)
 
       const chatsData = Array.isArray(chatsResponse?.data) ? chatsResponse.data : []
       const agentsData = Array.isArray(agentsResponse?.data) ? agentsResponse.data : []
 
       const filteredChats = chatsData
-        .filter((chat: any) => chat && chat.id)
+        .filter((chat: any) => chat && chat.id && typeof chat.message_count === "number" && chat.message_count > 0)
         .map((chat: any) => ({
           id: chat.id,
           title: chat.title || "Untitled Chat",
@@ -146,11 +86,10 @@ export default function ChatPage() {
           status: chat.status || "active",
         }))
 
-      console.log("[v0] Filtered chats:", filteredChats)
       setChats(filteredChats)
       setAgents(agentsData)
     } catch (error) {
-      console.error("[v0] Error fetching initial data:", error)
+      console.error("Error fetching initial data:", error)
       toast.error("Failed to load data")
       setChats([])
       setAgents([])
@@ -180,7 +119,7 @@ export default function ChatPage() {
           status: response.data.status || "active",
         }
 
-        window.location.href = `/dashboard/${newChat.id}`
+        router.push(`/dashboard/${newChat.id}`)
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
 
@@ -221,7 +160,7 @@ export default function ChatPage() {
           status: response.data.status || "active",
         }
 
-        window.location.href = `/dashboard/${newChat.id}`
+        router.push(`/dashboard/${newChat.id}`)
         setShowAgentSelector(false)
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
@@ -243,7 +182,7 @@ export default function ChatPage() {
       await chatAPI.delete(chatId)
       setChats((prev) => prev.filter((chat) => chat.id !== chatId))
       if (chatId === params.chatID) {
-        window.location.href = "/dashboard"
+        router.push("/dashboard")
       }
       toast.success("Chat deleted")
     } catch (error) {
@@ -256,9 +195,6 @@ export default function ChatPage() {
     try {
       await chatAPI.updateTitle(chatId, title)
       setChats((prev) => prev.map((chat) => (chat.id === chatId ? { ...chat, title } : chat)))
-      if (selectedChat?.id === chatId) {
-        setSelectedChat((prev) => (prev ? { ...prev, title } : null))
-      }
       toast.success("Chat title updated")
     } catch (error) {
       console.error("Error updating chat title:", error)
@@ -266,60 +202,39 @@ export default function ChatPage() {
     }
   }
 
-  const handleChatUpdate = useCallback(
-    (updatedChat: any) => {
-      if (!updatedChat || !updatedChat.id) {
-        console.warn("Invalid chat update data:", updatedChat)
-        return
-      }
-
-      const chatData = {
-        id: updatedChat.id,
-        title: updatedChat.title || "Untitled Chat",
-        agent_id: updatedChat.agent_id,
-        agent_name: updatedChat.agent_name,
-        created_at: updatedChat.created_at || new Date().toISOString(),
-        last_message_at: updatedChat.last_message_at || new Date().toISOString(),
-        message_count: updatedChat.message_count || 0,
-        total_tokens: updatedChat.total_tokens || 0,
-        total_cost: updatedChat.total_cost || 0,
-        status: updatedChat.status || "active",
-      }
-
-      setChats((prev) => {
-        const existingIndex = prev.findIndex((chat) => chat && chat.id === updatedChat.id)
-        if (existingIndex >= 0) {
-          const updated = [...prev]
-          updated[existingIndex] = chatData
-          return updated
-        } else {
-          return [chatData, ...prev]
-        }
-      })
-
-      if (selectedChat?.id === updatedChat.id) {
-        setSelectedChat(chatData)
-      }
-    },
-    [selectedChat],
-  )
-
-  const handleChatSelect = (selectedChatId: string) => {
-    console.log("[v0] Chat page selecting chat:", selectedChatId)
-    if (!selectedChatId || selectedChatId.trim() === "") {
-      console.error("[v0] Selected chat ID is undefined, null, or empty")
-      toast.error("Invalid chat ID")
+  const handleChatUpdate = useCallback((updatedChat: any) => {
+    if (!updatedChat || !updatedChat.id) {
+      console.warn("Invalid chat update data:", updatedChat)
       return
     }
 
-    try {
-      const cleanChatId = selectedChatId.trim()
-      console.log("[v0] Navigating to chat:", `/dashboard/${cleanChatId}`)
-      window.location.href = `/dashboard/${cleanChatId}`
-    } catch (error) {
-      console.error("[v0] Navigation error:", error)
-      toast.error("Failed to navigate to chat")
-    }
+    setChats((prev) => {
+      const existingIndex = prev.findIndex((chat) => chat && chat.id === updatedChat.id)
+      if (existingIndex >= 0) {
+        const updated = [...prev]
+        updated[existingIndex] = { ...updated[existingIndex], ...updatedChat }
+        return updated
+      } else if (updatedChat.message_count > 0) {
+        const newChat: Chat = {
+          id: updatedChat.id,
+          title: updatedChat.title || "Untitled Chat",
+          agent_id: updatedChat.agent_id,
+          agent_name: updatedChat.agent_name,
+          created_at: updatedChat.created_at || new Date().toISOString(),
+          last_message_at: updatedChat.last_message_at || new Date().toISOString(),
+          message_count: updatedChat.message_count || 0,
+          total_tokens: updatedChat.total_tokens || 0,
+          total_cost: updatedChat.total_cost || 0,
+          status: updatedChat.status || "active",
+        }
+        return [newChat, ...prev]
+      }
+      return prev
+    })
+  }, [])
+
+  const handleChatSelect = (selectedChatId: string) => {
+    router.push(`/dashboard/${selectedChatId}`)
   }
 
   const filteredChats = chats.filter((chat) => {
@@ -328,7 +243,9 @@ export default function ChatPage() {
     return true
   })
 
-  if (isLoading || isChatLoading) {
+  const selectedChat = chats.find((chat) => chat.id === chatId)
+
+  if (isLoading) {
     return (
       <ProtectedRoute>
         <div className="flex h-screen bg-gray-50">
@@ -352,7 +269,7 @@ export default function ChatPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => (window.location.href = "/dashboard")}
+              onClick={() => router.push("/dashboard")}
               className="bg-white shadow-sm"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -375,27 +292,21 @@ export default function ChatPage() {
               <div className="text-center max-w-md mx-auto">
                 <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chat Not Found</h3>
-                <p className="text-gray-500 mb-6">
-                  The requested chat could not be found or you don't have access to it.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button onClick={() => (window.location.href = "/dashboard")} variant="outline">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
-                  </Button>
-                  <Button onClick={() => fetchSpecificChat(chatId)} variant="ghost" size="sm">
-                    Retry Loading
-                  </Button>
-                </div>
+                <p className="text-gray-500 mb-6">The requested chat could not be found.</p>
+                <Button onClick={() => router.push("/dashboard")} variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Button>
               </div>
             </div>
           )}
         </div>
 
+        {/* Chat List Sidebar */}
         <div
           className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
-            chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80 lg:w-96 xl:w-80"
-          } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-xl" : ""}`}
+            chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80 lg:w-96"
+          } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-lg" : ""}`}
         >
           {!chatListCollapsed && (
             <>
@@ -404,10 +315,10 @@ export default function ChatPage() {
               )}
 
               <div className="relative z-30 bg-white h-full flex flex-col">
-                <div className="p-3 sm:p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Chats</h2>
-                    <div className="flex gap-1 sm:gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">Recent Chats</h2>
+                    <div className="flex gap-2">
                       {isMobile && (
                         <Button variant="ghost" size="sm" onClick={() => setChatListCollapsed(true)} className="p-1.5">
                           <X className="w-4 h-4" />
@@ -417,7 +328,7 @@ export default function ChatPage() {
                         onClick={handleCreateGeneralChat}
                         size="sm"
                         variant="outline"
-                        className="flex items-center gap-1 bg-transparent text-xs sm:text-sm px-2 sm:px-3"
+                        className="flex items-center gap-1 bg-transparent text-xs sm:text-sm"
                         disabled={isCreatingChat}
                       >
                         <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -426,7 +337,7 @@ export default function ChatPage() {
                       <Button
                         onClick={() => setShowAgentSelector(true)}
                         size="sm"
-                        className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
+                        className="flex items-center gap-1 text-xs sm:text-sm"
                         disabled={agents.length === 0 || isCreatingChat}
                       >
                         <Bot className="w-3 h-3 sm:w-4 sm:h-4" />

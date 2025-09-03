@@ -92,7 +92,7 @@ export default function ChatList({
             onClick={() => onSelectChat(chat.id)}
           >
             <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 max-w-64">
                 <div className="flex items-center gap-2 mb-1">
                   {chat.agent_id ? (
                     <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />

@@ -10,7 +10,6 @@ import { chatAPI, agentAPI } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Bot, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { toast } from "sonner"
-import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Chat {
   id: string
@@ -38,18 +37,29 @@ export default function DashboardPage() {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "general" | "agents">("all")
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [chatListCollapsed, setChatListCollapsed] = useState(false)
   const [showAgentSelector, setShowAgentSelector] = useState(false)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
 
-  const isMobile = useIsMobile()
+  // Mobile responsive states
+  const [isMobile, setIsMobile] = useState(false)
+
   const router = useRouter()
 
   useEffect(() => {
-    if (isMobile) {
-      setChatListCollapsed(true)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true)
+        setChatListCollapsed(true)
+      }
     }
-  }, [isMobile])
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     fetchInitialData()
@@ -58,19 +68,15 @@ export default function DashboardPage() {
   const fetchInitialData = async () => {
     try {
       setIsLoading(true)
-      console.log("[v0] Fetching initial data for dashboard...")
-
       const [chatsResponse, agentsResponse] = await Promise.all([chatAPI.getAll({ limit: 50 }), agentAPI.getAll()])
-
-      console.log("[v0] Chats response:", chatsResponse)
-      console.log("[v0] Agents response:", agentsResponse)
 
       // Ensure we have valid data arrays
       const chatsData = Array.isArray(chatsResponse?.data) ? chatsResponse.data : []
       const agentsData = Array.isArray(agentsResponse?.data) ? agentsResponse.data : []
 
+      // Filter out chats with 0 messages and ensure all required properties exist
       const filteredChats = chatsData
-        .filter((chat: any) => chat && chat.id)
+        .filter((chat: any) => chat && chat.id && typeof chat.message_count === "number" && chat.message_count > 0)
         .map((chat: any) => ({
           id: chat.id,
           title: chat.title || "Untitled Chat",
@@ -84,11 +90,10 @@ export default function DashboardPage() {
           status: chat.status || "active",
         }))
 
-      console.log("[v0] Filtered chats:", filteredChats)
       setChats(filteredChats)
       setAgents(agentsData)
     } catch (error) {
-      console.error("[v0] Error fetching initial data:", error)
+      console.error("Error fetching initial data:", error)
       toast.error("Failed to load data")
       // Set empty arrays on error to prevent undefined issues
       setChats([])
@@ -224,7 +229,8 @@ export default function DashboardPage() {
         const updated = [...prev]
         updated[existingIndex] = { ...updated[existingIndex], ...updatedChat }
         return updated
-      } else {
+      } else if (updatedChat.message_count > 0) {
+        // Add new chat to list only if it has messages
         const newChat: Chat = {
           id: updatedChat.id,
           title: updatedChat.title || "Untitled Chat",
@@ -239,17 +245,12 @@ export default function DashboardPage() {
         }
         return [newChat, ...prev]
       }
+      return prev
     })
   }, [])
 
   const handleChatSelect = (chatId: string) => {
-    console.log("[v0] Dashboard selecting chat:", chatId)
-    if (!chatId) {
-      console.error("[v0] Chat ID is undefined or null")
-      toast.error("Invalid chat ID")
-      return
-    }
-    router.push(`/dashboard/${chatId}`)
+    window.location.href = `/dashboard/${chatId}`
   }
 
   const filteredChats = chats.filter((chat) => {
@@ -337,8 +338,8 @@ export default function DashboardPage() {
 
         <div
           className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
-            chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80 lg:w-96 xl:w-80"
-          } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-xl" : ""}`}
+            chatListCollapsed ? "w-0 overflow-hidden" : "w-full sm:w-80 lg:w-96"
+          } ${isMobile ? "absolute right-0 top-0 h-full z-30 shadow-lg" : ""}`}
         >
           {!chatListCollapsed && (
             <>
@@ -350,10 +351,10 @@ export default function DashboardPage() {
               {/* Chat List Content */}
               <div className="relative z-30 bg-white h-full flex flex-col">
                 {/* Header */}
-                <div className="p-3 sm:p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Chats</h2>
-                    <div className="flex gap-1 sm:gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">Recent Chats</h2>
+                    <div className="flex gap-2">
                       {/* Mobile close button */}
                       {isMobile && (
                         <Button variant="ghost" size="sm" onClick={() => setChatListCollapsed(true)} className="p-1.5">
@@ -364,7 +365,7 @@ export default function DashboardPage() {
                         onClick={handleCreateGeneralChat}
                         size="sm"
                         variant="outline"
-                        className="flex items-center gap-1 bg-transparent text-xs sm:text-sm px-2 sm:px-3"
+                        className="flex items-center gap-1 bg-transparent text-xs sm:text-sm"
                         disabled={isCreatingChat}
                       >
                         <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -373,7 +374,7 @@ export default function DashboardPage() {
                       <Button
                         onClick={() => setShowAgentSelector(true)}
                         size="sm"
-                        className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
+                        className="flex items-center gap-1 text-xs sm:text-sm"
                         disabled={agents.length === 0 || isCreatingChat}
                       >
                         <Bot className="w-3 h-3 sm:w-4 sm:h-4" />

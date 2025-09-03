@@ -243,6 +243,12 @@ export default function DashboardPage() {
   }, [])
 
   const handleChatSelect = (chatId: string) => {
+    console.log("[v0] Dashboard selecting chat:", chatId)
+    if (!chatId) {
+      console.error("[v0] Chat ID is undefined or null")
+      toast.error("Invalid chat ID")
+      return
+    }
     router.push(`/dashboard/${chatId}`)
   }
 

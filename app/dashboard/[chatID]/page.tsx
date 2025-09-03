@@ -232,6 +232,12 @@ export default function ChatPage() {
   }, [])
 
   const handleChatSelect = (selectedChatId: string) => {
+    console.log("[v0] Chat page selecting chat:", selectedChatId)
+    if (!selectedChatId) {
+      console.error("[v0] Selected chat ID is undefined or null")
+      toast.error("Invalid chat ID")
+      return
+    }
     router.push(`/dashboard/${selectedChatId}`)
   }
 
@@ -246,7 +252,7 @@ export default function ChatPage() {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="flex h-screen my-auto bg-gray-50">
+        <div className="flex h-screen bg-gray-50">
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -264,7 +270,7 @@ export default function ChatPage() {
         <div className="flex-1 relative">
           {/* Back button and Chat List Toggle */}
           <div className="absolute top-4 left-4 right-4 z-10 flex justify-between">
-            {/* <Button
+            <Button
               variant="outline"
               size="sm"
               onClick={() => router.push("/dashboard")}
@@ -272,15 +278,15 @@ export default function ChatPage() {
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
-            </Button> */}
-            {/* <Button
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               className="bg-white shadow-sm"
               onClick={() => setChatListCollapsed(!chatListCollapsed)}
             >
               {chatListCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </Button> */}
+            </Button>
           </div>
 
           {selectedChat ? (

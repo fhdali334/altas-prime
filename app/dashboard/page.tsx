@@ -119,10 +119,14 @@ export default function DashboardPage() {
           status: response.data.status || "active",
         }
 
-        setSelectedChatId(newChat.id)
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success("New chat created!")
+
+        // Navigate to the new chat immediately
+        const chatUrl = `/dashboard/${newChat.id}`
+        console.log("[v0] Navigating to new chat:", chatUrl)
+        router.push(chatUrl)
 
         // On mobile, close chat list when chat is selected
         if (isMobile) {
@@ -164,11 +168,15 @@ export default function DashboardPage() {
           status: response.data.status || "active",
         }
 
-        setSelectedChatId(newChat.id)
         setShowAgentSelector(false)
         // Add to chats list immediately
         setChats((prev) => [newChat, ...prev])
         toast.success(`Chat with ${selectedAgent?.name} created!`)
+
+        // Navigate to the new chat immediately
+        const chatUrl = `/dashboard/${newChat.id}`
+        console.log("[v0] Navigating to new agent chat:", chatUrl)
+        router.push(chatUrl)
 
         // On mobile, close chat list when chat is selected
         if (isMobile) {
@@ -191,6 +199,8 @@ export default function DashboardPage() {
       setChats((prev) => prev.filter((chat) => chat.id !== chatId))
       if (selectedChatId === chatId) {
         setSelectedChatId(null)
+        // Navigate back to dashboard root when deleting selected chat
+        router.push('/dashboard')
       }
       toast.success("Chat deleted")
     } catch (error) {
@@ -242,6 +252,7 @@ export default function DashboardPage() {
     })
   }, [])
 
+  // FIXED: This function now properly navigates to the chat URL
   const handleChatSelect = (chatId: string) => {
     console.log("[v0] Dashboard selecting chat:", chatId)
     if (!chatId || chatId.trim() === "") {
@@ -251,8 +262,17 @@ export default function DashboardPage() {
     }
 
     try {
-      console.log("[v0] Navigating to chat:", `/dashboard/${chatId}`)
-      router.push(`/dashboard/${chatId}`)
+      const cleanChatId = chatId.trim()
+      const chatUrl = `/dashboard/${cleanChatId}`
+      console.log("[v0] Navigating to chat:", chatUrl)
+      
+      // Use router.push to navigate to the specific chat URL
+      router.push(chatUrl)
+      
+      // On mobile, close chat list when chat is selected
+      if (isMobile) {
+        setChatListCollapsed(true)
+      }
     } catch (error) {
       console.error("[v0] Navigation error:", error)
       toast.error("Failed to navigate to chat")

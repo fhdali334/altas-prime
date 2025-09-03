@@ -89,6 +89,7 @@ export default function AnalyticsPage() {
     ])
   }
 
+  // FIXED: This function now properly navigates to the chat URL
   const handleChatClick = (chatId: string) => {
     console.log("[v0] Analytics navigating to chat:", chatId)
     if (!chatId || chatId.trim() === "") {
@@ -99,11 +100,12 @@ export default function AnalyticsPage() {
 
     try {
       const cleanChatId = chatId.trim()
+      const chatUrl = `/dashboard/${cleanChatId}`
       console.log("[v0] Clean chat ID:", cleanChatId)
-      console.log("[v0] Navigating to:", `/dashboard/${cleanChatId}`)
+      console.log("[v0] Navigating to:", chatUrl)
 
-      // Use replace instead of push to prevent back button issues
-      router.push(`/dashboard/${cleanChatId}`)
+      // Use router.push to navigate to the specific chat URL
+      router.push(chatUrl)
     } catch (error) {
       console.error("[v0] Navigation error:", error)
       toast.error("Failed to navigate to chat")
@@ -325,7 +327,7 @@ export default function AnalyticsPage() {
                     <YAxis />
                     <Tooltip
                       labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                      formatter={(value: any) => [`$${Number(value).toFixed(4)}`, "Cost"]}
+                      formatter={(value: any) => [`${Number(value).toFixed(4)}`, "Cost"]}
                     />
                     <Bar dataKey="cost" fill="#82ca9d" />
                   </BarChart>

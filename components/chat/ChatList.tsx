@@ -82,7 +82,14 @@ export default function ChatList({ chats, selectedChatId, onSelectChat, onDelete
             className={`group relative p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 ${
               selectedChatId === chat.id ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
             }`}
-            onClick={() => onSelectChat(chat.id)}
+            onClick={() => {
+              console.log("[v0] ChatList selecting chat:", chat.id)
+              if (chat.id) {
+                onSelectChat(chat.id)
+              } else {
+                console.error("[v0] Chat ID is missing:", chat)
+              }
+            }}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">

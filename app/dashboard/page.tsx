@@ -249,6 +249,8 @@ export default function DashboardPage() {
       toast.error("Invalid chat ID")
       return
     }
+
+    setSelectedChatId(chatId)
     router.push(`/dashboard/${chatId}`)
   }
 
